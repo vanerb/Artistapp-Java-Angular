@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Mi perfil</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+  <link rel="stylesheet" href="css/dialogoestilo.css">
+  <script src="js/checksession.js"></script>
+  <script src="js/perfilusuario.js"></script>
+  <script src="js/favoritos.js"></script>
+  <link rel="stylesheet" href="css/formulario.css">
+  <link rel="stylesheet" href="css/perfilusuario.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/fondo.css">
+  <script src="js/totop.js"></script>
+  <link rel="stylesheet" href="css/totop.css">
+  <link rel="stylesheet" href="css/dialogoui.css">
+  <style>
+    .card-img-top {
+      height: 10rem;
+      object-fit: cover;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="menu"></div>
+  <div id="btn-arriba">
+    <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+  </div>
+
+  <div class="container">
+    <div id="usuarioinfo">
+
+    </div>
+    <button type="button" id="editinfo" class="btn btn-primary">Editar perfil</button>
+    <button type="button" id="cambiarcontrasena" class="btn btn-primary">Cambiar contraseña</button>
+    <button type="button" id="reportar" class="btn btn-primary">Informes/Reportes</button>
+    <div id="editcontrasena" class="modal">
+      <div class="modal-content">
+        <span class="close" id="close">&times;</span>
+        <form action="perfilusuario.html" method="post" id="editcontrasenaform">
+          <label for="antcontrasena">Antigua contraseña</label>
+          <input type="password" name="antcontrasena" id="antcontrasena" placeholder="Antigua contrasena">
+          <label for="nuevacontrasena">Nueva contraseña</label>
+          <input type="password" name="nuevacontrasena" id="nuevacontrasena" placeholder="Nueva contrasena">
+          <label for="repcontrasena">Repite la nueva contraseña</label>
+          <input type="password" name="repcontrasena" id="repcontrasena" placeholder="Repite la nueva contrasena">
+          <input id="btchangepassword" type="button" value="Editar">
+        </form>
+      </div>
+    </div>
+
+    <div id="editperfil" class="modal">
+      <div class="modal-content">
+        <span class="close" id="close">&times;</span>
+        <form action="perfilusuario.html" method="post" id="editperfilform">
+          <label for="nombre">Nombre</label>
+          <input type="text" name="nombre" id="nombre" placeholder="Nombre">
+
+          <label for="apellidos">Apellidos</label>
+          <input type="text" name="apellidos" id="apellidos" placeholder="Apellidos">
+
+          <label for="usuario">Usuario</label>
+          <input type="text" name="usuario" id="usuario" placeholder="Usuario">
+          <label for="usuario">Correo</label>
+          <input type="text" name="correo" id="correo" placeholder="Correo">
+          <label for="imagen">imagen de perfil</label>
+          <input type="file" name="imagen" id="imagen" accept="image/jpeg, image/png">
+          <input type="hidden" name="imagenant" id="imagenant">
+          <label for="biografia">Biografía</label>
+          <input type="text" name="biografia" id="biografia" placeholder="Biografia">
+
+          <input id="btchangeperfil" type="button" value="Editar">
+        </form>
+      </div>
+    </div>
+
+    <div id="edituser" class="modal">
+
+      <div class="modal-content">
+        <span class="close" id="close">
+          <p>&times;</p>
+        </span>
+
+        <div id="userform">
+
+        </div>
+      </div>
+    </div>
+    <br>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs">
+      <li id="publicacionestab" class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#menu0">Publicaciones</a>
+      </li>
+      <li id="avisostab" class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#menu1">Avisos</a>
+      </li>
+      <li id="eventostab" class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#menu2">Eventos</a>
+      </li>
+
+      <li id="usuariostab" class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#menu3">Favoritos</a>
+      </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <div id="menu0" class="container tab-pane active"><br>
+        <button id="anadirpubli">Administrar publicación</button>
+
+
+        <div class="row">
+          <div class="col-md-12">
+            <h1 class="display-4">Mis publicaciones</h1>
+            <hr>
+          </div>
+        </div>
+
+
+        <div class="row" id="showpublitarjeta">
+
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <button style="display: none;" id="cargar-mas-publi">Cargar más</button>
+          </div>
+        </div>
+
+
+        <div id="verimagenuser" class="modal">
+
+          <div class="modal-content">
+            <span class="close" id="close">
+              <p>&times;</p>
+            </span>
+
+            <div id="publiveruser">
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div id="menu1" class="container tab-pane fade"><br>
+        <button id="anadiravisos">Administrar avisos</button>
+        <div class="row">
+          <div class="col-md-12">
+            <h1 class="display-4">Mis avisos</h1>
+            <hr>
+          </div>
+        </div>
+
+
+        <div id="avisotab"></div>
+      </div>
+      <div id="menu2" class="container tab-pane fade"><br>
+
+        <button id="anadirevento">Administrar eventos</button>
+
+
+
+
+        <div>
+
+
+
+          <div class="row">
+            <div class="col-md-12">
+              <h1 class="display-4">Eventos en los que participo</h1>
+              <hr>
+            </div>
+          </div>
+
+          <div class="row" id="shoevent">
+
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <button style="display: none;" id="cargar-mas-event">Cargar más</button>
+            </div>
+          </div>
+
+
+
+          <div id="showEventuser" class="modal">
+            <div class="modal-content">
+              <span class="close" id="close">&times;</span>
+              <div class="row">
+                <div id="titulouser" class="col-md-12">
+
+                </div>
+              </div>
+              <div class="row">
+                <div id="detallesuser" class="col-md-8">
+                  <ul class="list-group"></ul>
+                </div>
+              </div>
+
+              <div id="botonexit" class="row">
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <div id="menu3" class="container tab-pane fade"><br>
+
+        <div class="row">
+          <div class="col-md-12">
+            <h1 class="display-4">Mis perfiles fijados</h1>
+            <hr>
+          </div>
+        </div>
+
+        <div class="row" id="favtab"></div>
+        <div class="row">
+          <div class="col-md-12">
+            <button style="display: none;" id="cargar-mas-user">Cargar más</button>
+          </div>
+        </div>
+
+
+
+
+
+        <div class="row">
+          <div class="col-md-6">
+            <button style="display: none;" id="cargar-mas-user">Cargar más</button>
+            <button style="display: none;" id="cargar-mas-filtro-user">Cargar más</button>
+          </div>
+        </div>
+
+
+
+
+        <div id="showuserfav" class="modal">
+          <div class="modal-content">
+            <span class="close" id="close">&times;</span>
+            <div class="row">
+              <div id="detallesuserfav" class="col-md-12">
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="verimagenuserfav" class="modal">
+
+          <div class="modal-content">
+            <span class="close" id="close">
+              <p>&times;</p>
+            </span>
+
+            <div id="publiveruserfav">
+
+            </div>
+          </div>
+        </div>
+        <div id="showEventuserfav" class="modal">
+          <div class="modal-content">
+            <span class="close" id="close">&times;</span>
+            <div class="row">
+              <div id="titulouserfav" class="col-lg-12">
+
+
+              </div>
+
+            </div>
+            <div class="row">
+              <div id="detallesuserfav" class="col-md-8">
+                <ul class="list-group"></ul>
+              </div>
+            </div>
+
+            <div class="row">
+              <!--<div class="col-md-6"><button id="saliruser"
+                          class="btn btn-primary w-100">Salir</button>
+                  </div>-->
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+      </div>
+
+
+
+
+    </div>
+
+  </div>
+  </div>
+
+
+
+
+  <footer class="bg-light py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <p>ARTISTAPP</p>
+          <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+          <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+          <p>© 2023 Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

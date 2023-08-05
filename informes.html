@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/dialogoestilo.css">
+    <link rel="stylesheet" href="css/formulario.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <script src="js/checksession.js"></script>
+    <script src="js/informes.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/fondo.css">
+    <script src="js/totop.js"></script>
+  <link rel="stylesheet" href="css/totop.css">
+  <link rel="stylesheet" href="css/dialogoui.css">
+</head>
+
+<body>
+    <div id="menu"></div>
+    
+    <div id="btn-arriba">
+      <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="display-4">INFORMES</h1>
+                <p>Los informes sirven para mantener la comunidad limpia y poder reportar y que los administradores tomen acciones sobre "X" usuario.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12"><button id="addinforme">Crear informe</button></div>
+        </div>
+        <div id="informes">
+            
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+              <button id="cargar-mas-informe" style="display: none;">Cargar más</button>
+            </div>
+          </div>
+
+
+        <div id="addform" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close">&times;</span>
+                <form action="informes.html" method="post" id="addinforme">
+
+                    <label for="usuariotarget">¿A que usuario quieres reportar?</label>
+                    <select name="usuariotarget" id="usuariotarget"></select>
+                    <label for="informe">Informe</label>
+                    <input type="text" name="informe" id="informe" placeholder="Que es lo que sucede">
+                    <input id="btadd" type="button" value="Añadir">
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+     <!-- Bootstrap JS -->
+  
+  <footer class="bg-light py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <p>ARTISTAPP</p>
+          <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+          <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+          <p>© 2023 Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de pedidos</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <script src="js/checksession.js"></script>
+    <script src="js/adminpedidos.js"></script>
+    <link rel="stylesheet" href="css/dialogoestilo.css">
+    <link rel="stylesheet" href="css/formulario.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="css/celdas.css">
+    <link rel="stylesheet" href="css/paginacion.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/fondo.css">
+    <script src="js/totop.js"></script>
+    <link rel="stylesheet" href="css/totop.css">
+    <link rel="stylesheet" href="css/dialogoui.css">
+    
+</head>
+
+<body>
+    <div id="menu"></div>
+
+    <div id="btn-arriba">
+        <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="display-4">PEDIDOS AGRUPADOS</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table id="pedidosadmin" class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Usuario</th>
+                                <th scope="col">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="paginacion">
+                    <!-- Aquí se agregarán los botones de paginación con JavaScript -->
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <div id="verpedidosindv" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close">&times;</span>
+
+                <div class="row">
+                    <div class="col-md-10">
+                        <h1 class="display-4">PRODUCTOS INDIVIDUALES</h1>
+                        <hr>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="table-responsive">
+                            <table id="pedidosproductos" class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Nombre</th>
+                                        <th scope="col">Usuario</th>
+                                        <th scope="col">Producto</th>
+                                        <th scope="col">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="paginaciondetalles">
+                            <!-- Aquí se agregarán los botones de paginación con JavaScript -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+
+
+        <!-- Diálogo modal -->
+        <div id="editform" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close">&times;</span>
+                <form action="adminpedidos.html" method="post" id="editpedido">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" name="nombre" id="nombre" placeholder="Nombre">
+                    <label for="usuario">Usuario</label>
+                    <select name="usuario" id="usuario"></select>
+                    <label for="estado">Estado</label>
+
+                    <select name="estado" id="estado">
+                        <option value="preparando">preparando</option>
+                        <option value="enviado">enviado</option>
+                        <option value="en reparto">en reparto</option>
+                        <option value="entregado">entregado</option>
+                    </select>
+                    <label for="direccion">Dirección</label>
+                    <input type="text" name="direccion" id="direccion" placeholder="Direccion">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" name="telefono" id="telefono" placeholder="Telefono">
+                    <input id="btedit" type="button" value="Editar">
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <footer class="bg-light py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>ARTISTAPP</p>
+                    <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+                    <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+                    <p>© 2023 Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+
+
+</body>
+
+</html>

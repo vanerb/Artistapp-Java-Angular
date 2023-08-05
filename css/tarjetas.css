@@ -1,0 +1,12 @@
+.card {
+    margin-bottom: 10px;
+    margin-left: 10px;
+
+}
+
+#publicacion, #usuarios, #evento {
+   display: flex;
+    justify-content: center;
+    align-items: center;
+}
+

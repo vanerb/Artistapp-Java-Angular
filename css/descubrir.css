@@ -1,0 +1,484 @@
+.container{
+    padding-bottom: 30px;
+}
+
+h1{
+    text-align: center;
+}
+
+#showEvent h2{
+    text-align: center;
+}
+
+#showEventuser h2{
+    text-align: center;
+
+}
+
+#verimagen input[type="button"] {
+    width: 30%;
+}
+
+#verimagen img:not(#megusta img) {
+    border: 2px solid #03989E;
+    /* color del borde y ancho */
+    border-radius: 0.25rem;
+    /* radio de las esquinas */
+    padding: 8px;
+    /* espacio interior */
+    background-color: #03999ed7;
+    /* color de fondo */
+    box-shadow: 5px 5px 5px #888888;
+    /* sombra */
+
+    display: block;
+    margin: 0 auto;
+    max-width: 35%;
+    height: auto;
+}
+
+#verimagen {
+    text-align: center;
+}
+
+#verimagen h2 {
+    font-weight: 300;
+}
+
+#verimagen h1{
+    text-transform: uppercase;
+    font-weight: 300;
+    font-size: 3.5rem;
+}
+
+
+
+
+
+#publiveruser input[type="button"] {
+    width: 30%;
+
+}
+
+
+
+#publiveruser {
+    text-align: center;
+}
+
+#publiveruser h1{
+    font-weight: 300;
+    font-size: 3.5rem;
+    text-transform: uppercase;
+}
+
+#menu2 #showEvent h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#menu2 #showEvent #detalles {
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+#menu1 #showEventuser h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#menu1 #showEventuser #detallesuser {
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+#home #imgver {
+    cursor: pointer;
+}
+
+#menu1 #imgveruser {
+    margin-top: 10px;
+}
+
+#menu1 #tabeventos .card {
+    margin-top: 10px;
+}
+
+#menu1 #imgveruser {
+    cursor: pointer;
+
+}
+
+
+#imgver.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#imgver.card {
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#imgver.card:hover img {
+    transform: scale(1.2);
+}
+
+
+
+
+#imgveruser .card-body h5 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#publiveruser {
+    word-wrap: break-word;
+}
+
+
+.nav-link{
+   color: #03989E;
+}
+
+#verimagenuser #publiveruser img:not(#megusta img) {
+    border: 2px solid #03989E;
+    /* color del borde y ancho */
+    border-radius: 0.25rem;
+    /* radio de las esquinas */
+    padding: 8px;
+    /* espacio interior */
+    background-color: #03999ed7;
+    /* color de fondo */
+    box-shadow: 5px 5px 5px #888888;
+    /* sombra */
+
+    display: block;
+    margin: 0 auto;
+    max-width: 35%;
+    height: auto;
+}
+
+#verimagenuser #publiveruser {
+    text-align: center;
+}
+
+#verimagenuser #publiveruser h2 {
+    font-weight: 300;
+}
+
+
+
+button[type="button"]:not(.navbar-toggler, .ui-button) {
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+
+
+button[type="button"]:not(.navbar-toggler, .ui-button):hover {
+    background-color: #03999ede;
+}
+
+input[type="date"],
+select {
+    cursor: pointer;
+}
+
+input[type="text"] {
+    cursor: text;
+
+}
+
+#publiver {
+    word-wrap: break-word;
+
+}
+
+#publiver h1 {
+    word-wrap: break-word;
+}
+
+#publiver h2 {
+    word-wrap: break-word;
+}
+
+#imgver .card-body h5 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#evento .card .card-body h4 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#showEvent #titulo {
+    word-wrap: break-word;
+}
+
+#tabeventos .card-body h4 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#titulouser {
+    word-wrap: break-word;
+}
+
+#usuarios .card-body h5,
+#usuarios .card-body p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#showuser #detallesuser p {
+    word-wrap: break-word;
+    
+}
+
+#showuser #detallesuser p:not(.card-text) {
+    font-size: 20px;
+    font-weight: 300;
+    
+}
+
+
+
+#showuser #detallesuser h1 {
+    word-wrap: break-word;
+    font-weight: 500;
+    text-transform: uppercase;
+
+}
+
+.list-group-item {
+    word-wrap: break-word;
+
+}
+
+
+body {
+    background-image: url('../media/fondo.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.container{
+    background-color: #f4f4f4;
+    background-color: rgba(244, 244, 244, 0.95);
+    width: 100%;
+}
+
+
+
+#usuarioscartas.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#usuarioscartas.card {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#usuarioscartas.card:hover img {
+    transform: scale(1.2);
+}
+
+
+#evento .card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#evento .card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+
+#evento .card .card-text{
+    
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#eventcartauser.card .card-text, #eventcartauser.card .card-title{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+#evento .card:hover img {
+    transform: scale(1.2);
+}
+
+
+
+
+#imgveruser.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#imgveruser.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#imgveruser.card:hover img {
+    transform: scale(1.2);
+}
+
+
+
+#eventcartauser.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#eventcartauser.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#eventcartauser.card:hover img {
+    transform: scale(1.2);
+}
+
+#megusta p{
+    font-size: 20px;
+    font-weight: 400;
+}
+
+#megusta img{
+    
+    padding: 2px;
+}
+
+
+button:not(.navbar-toggler, .ui-button){
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:not(.navbar-toggler, .ui-button):hover{
+    background-color: #03999ede;
+}
+
+
+
+@media (max-width: 768px) {
+    #verimagen h1 {
+      font-size: 1.5rem;
+    }
+
+    #verimagen h2 {
+        font-size: 1.2rem;
+    }
+    #verimagen img:not(#megusta img) {
+        border: 2px solid #03989E;
+        /* color del borde y ancho */
+        border-radius: 0.25rem;
+        /* radio de las esquinas */
+        padding: 8px;
+        /* espacio interior */
+        background-color: #03999ede;
+        /* color de fondo */
+        box-shadow: 5px 5px 5px #888888;
+        /* sombra */
+    
+        display: block;
+        margin: 0 auto;
+        max-width: 80%;
+        height: auto;
+    }
+
+    #verimagenuser #publiveruser img:not(#megusta img) {
+        border: 2px solid #03989E;
+        /* color del borde y ancho */
+        border-radius: 0.25rem;
+        /* radio de las esquinas */
+        padding: 8px;
+        /* espacio interior */
+        background-color: #03999ede;
+        /* color de fondo */
+        box-shadow: 5px 5px 5px #888888;
+        /* sombra */
+    
+        display: block;
+        margin: 0 auto;
+        max-width: 80%;
+        height: auto;
+    }
+
+    #publiveruser h1{
+        font-size: 1.5rem;
+    }
+
+    #publiveruser h2{
+        font-size: 1.2rem;
+    }
+  }

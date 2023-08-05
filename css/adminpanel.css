@@ -1,0 +1,73 @@
+.card img {
+    top: 100%;
+    transform: scale(0.7);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+    margin: 10px;
+    width: 100%;
+
+    height: auto;
+}
+
+.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px;
+
+    
+
+}
+
+
+
+
+.card:hover img {
+    transform: scale(0.8);
+}
+
+
+.row{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+}
+
+
+
+img:not(#btn-arriba img, .navbar-brand img){
+    display: block;
+    margin: 0 auto;
+    padding-top: 10px;
+    
+}
+
+
+body {
+    background-color: #f4f4f4;
+}
+
+a{
+    color: #03989E;
+}
+
+button:not(.navbar-toggler, .ui-button){
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:not(.navbar-toggler, .ui-button):hover{
+    background-color: #03999ede;
+}
+
+
+

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Registrase</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/formulario.css">
+  <script src="js/registro.js"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/registro.css">
+  <link rel="stylesheet" href="css/fondo.css">
+  <script src="js/totop.js"></script>
+  <link rel="stylesheet" href="css/totop.css">
+  <link rel="stylesheet" href="css/dialogoui.css">
+</head>
+<body>
+
+  <div id="btn-arriba">
+    <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-8 col-lg-6">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title text-center">Registro</h4>
+          </div>
+          <div class="card-body">
+            <form id="adduser">
+              <div class="form-group mb-3">
+                <label for="nombre">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Nombre">
+              </div>
+              <div class="form-group mb-3">
+                <label for="apellidos">Apellido</label>
+                <input type="text" class="form-control" id="apellidos" name="apellidos" placeholder="Apellidos">
+              </div>
+              <div class="form-group mb-3">
+                <label for="usuario">Usuario</label>
+                <input type="text" class="form-control" id="usuario" name="usuario" placeholder="Usuario">
+              </div>
+              <div class="form-group mb-3">
+                <label for="correo">Email</label>
+                <input type="email" class="form-control" id="correo" name="correo" placeholder="Correo">
+              </div>
+              <div class="form-group mb-3">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" class="form-control" id="contrasena" name="contrasena" title="La contraseña debe contener 8 caracteres, 1 minuscula, 1 mayuscula, 1 digito y puede contener 1 caracter especial" placeholder="Contraseña">
+              </div>
+              <div class="form-group mb-3">
+                <label for="repcontrasena">Confirmar contraseña</label>
+                <input type="password" class="form-control" id="repcontrasena" name="repcontrasena" placeholder="Repita la contraseña">
+              </div>
+              <div class="form-group mb-3">
+                <label for="id_tipo">Tipo de cuenta</label>
+                <select name="id_tipo" id="id_tipo"></select>
+              </div>
+              <button id="registrarse" type="button" class="btn btn-primary w-100 mt-3">Registrarse</button>
+            </form>
+          </div>
+          <div class="card-footer">
+            <p class="text-center mb-0">¿Ya tienes una cuenta? <a href="login.html">Inicia sesión</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+
+
+
+
+  <footer class="bg-light py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <p>ARTISTAPP</p>
+          <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+          <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+          <p>© 2023 Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+</body>
+</html>

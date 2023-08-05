@@ -1,0 +1,91 @@
+body {
+    background-image: url('../media/fondo.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.container{
+    background-color: #f4f4f4;
+    background-color: rgba(244, 244, 244, 0.95);
+    width: 100%;
+}
+
+h1, h2, h4{
+    font-family: 'Bangers', cursive;
+}
+
+p:not(#close p), li, td, input, button, option, select{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 20px;
+}
+
+input[type="search"], option, select{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 20px;
+}
+
+h5{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 25px;
+}
+
+th, label{
+    font-family: 'Bangers', cursive;
+    font-size: 25px;
+}
+
+button:not(.navbar-toggler, .ui-button){
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:not(.navbar-toggler, .ui-button):hover{
+    background-color: #03999ede;
+}
+
+input[type="button"]:not(.navbar-toggler, .ui-button){
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+input[type="button"]:not(.navbar-toggler, .ui-button):hover{
+    background-color: #03999ede;
+}
+
+a{
+    color: #03999ede;
+}
+
+td input[type="button"]:not(.navbar-toggler, .ui-button){
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+td input[type="button"]:not(.navbar-toggler, .ui-button){
+    background-color: #03999ede;
+}
+
+.pagina button{
+    background-color: #03989E;
+}
+
+.pagina button:hover{
+    background-color: #03999ede;
+}
+

@@ -1,0 +1,41 @@
+button:not(.navbar-toggler, .ui-button){
+    margin: 0 auto;
+    display: block;
+}
+
+h1,h5{
+    text-align: center;
+    margin-top: 50px;
+    font-family: 'Bangers', cursive;
+}
+
+.col-md-6{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+}
+
+#botones{
+    padding: 10px;
+}
+
+
+
+p{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 20px;
+}
+
+li{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 20px;
+}
+
+img{
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+}

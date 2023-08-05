@@ -1,0 +1,445 @@
+.container{
+    padding-bottom: 30px;
+}
+
+#publiveruser input[type="button"] {
+    width: 30%;
+}
+
+#publiveruserfav input[type="button"] {
+    width: 30%;
+
+}
+
+
+#publiveruser {
+    text-align: center;
+}
+
+button[type="button"]:not(.navbar-toggler, .ui-button) {
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button[type="button"]:not(.navbar-toggler, .ui-button):hover {
+    background-color: #03999ede;
+}
+
+#editinfo {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#cambiarcontrasena {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#usuarioinfo {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+#usuarioinfo h1 {
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+
+#showpublitarjeta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#showpublitarjeta #imgver {
+    margin-top: 20px;
+    margin-right: 10px;
+
+}
+
+#publiveruser img:not(#megusta img) {
+    border: 2px solid #03989E;
+    /* color del borde y ancho */
+    border-radius: 0.25rem;
+    /* radio de las esquinas */
+    padding: 8px;
+    /* espacio interior */
+    background-color: #03999ede;
+    /* color de fondo */
+    box-shadow: 5px 5px 5px #888888;
+    /* sombra */
+
+    display: block;
+    margin: 0 auto;
+    max-width: 35%;
+    height: auto;
+}
+
+#publiveruser {
+    text-align: center;
+    word-wrap: break-word;
+}
+
+#publiveruser h2 {
+    font-weight: 300;
+    word-wrap: break-word;
+}
+
+#publiveruser h1 {
+    word-wrap: break-word;
+    font-weight: 300;
+    font-size: 3.5rem;
+    text-transform: uppercase;
+}
+
+
+#imgver .card-body h5 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#shoevent .card .card-body h4 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#titulouser h1 {
+    word-wrap: break-word;
+}
+
+#shoevent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#shoevent .card {
+    margin-top: 20px;
+    margin-right: 10px;
+
+}
+
+
+
+#showEventuser h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#showEventuser #detalles {
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+#showEventuser h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#showEventuser #detallesuser {
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+#imgver {
+    cursor: pointer;
+}
+
+#usuarioinfo {
+    word-wrap: break-word;
+}
+
+.list-group-item {
+    word-wrap: break-word;
+
+}
+
+#botonexit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+body {
+    background-color: #f4f4f4;
+}
+
+
+
+
+#imgver.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#imgver.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#imgver.card:hover img {
+    transform: scale(1.2);
+}
+
+
+
+#eventocard.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#eventocard.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#eventocard.card .card-text{
+    
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#eventcartauser.card .card-text, #eventcartauser.card .card-title{
+    
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#showEventuser h2{
+    text-align: center;
+}
+
+#eventocard.card:hover img {
+    transform: scale(1.2);
+}
+
+
+#megusta p {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+#megusta img {
+
+    padding: 2px;
+}
+
+#usuarioscartas {
+    margin: 10px;
+}
+
+
+
+
+
+
+#showEventuserfav #detallesuserfav {
+    margin: 0 auto;
+    display: block;
+
+    text-align: center;
+    padding-bottom: 50px;
+}
+
+#showEventuserfav #titulouserfav {
+
+    text-align: center;
+}
+
+#publiveruserfav img:not(#megusta img) {
+    border: 2px solid #03989E;
+    /* color del borde y ancho */
+    border-radius: 0.25rem;
+    /* radio de las esquinas */
+    padding: 8px;
+    /* espacio interior */
+    background-color: #03999ede;
+    /* color de fondo */
+    box-shadow: 5px 5px 5px #888888;
+    /* sombra */
+
+    display: block;
+    margin: 0 auto;
+    max-width: 35%;
+    height: auto;
+}
+
+#publiveruserfav {
+    text-align: center;
+    word-wrap: break-word;
+}
+
+#publiveruserfav h2 {
+    font-weight: 300;
+    word-wrap: break-word;
+}
+
+#publiveruserfav h1 {
+    word-wrap: break-word;
+    font-weight: 300;
+    font-size: 3.5rem;
+    text-transform: uppercase;
+}
+
+#imgveruser {
+    margin: 10px;
+    cursor: pointer;
+}
+
+
+#eventcartauser.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#eventcartauser.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    margin: 10px;
+}
+
+#eventcartauser.card:hover img {
+    transform: scale(1.2);
+}
+
+
+
+
+#imgveruser.card img {
+    top: 100%;
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    z-index: -1;
+
+}
+
+#imgveruser.card {
+    position: relative;
+    z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    margin: 10px;
+}
+
+#imgveruser.card:hover img {
+    transform: scale(1.2);
+}
+
+a{
+    color: #03989E;
+}
+
+
+button:not(.navbar-toggler, .ui-button) {
+    background-color: #03989E;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:not(.navbar-toggler, .ui-button):hover {
+    background-color: #03999ede;
+}
+
+
+@media (max-width: 768px) {
+    #publiveruser h1 {
+        font-size: 1.5rem;
+    }
+
+    #publiveruser h2 {
+        font-size: 1.2rem;
+    }
+
+    #publiveruser img:not(#megusta img) {
+        border: 2px solid #03989E;
+        /* color del borde y ancho */
+        border-radius: 0.25rem;
+        /* radio de las esquinas */
+        padding: 8px;
+        /* espacio interior */
+        background-color: #03999ede;
+        /* color de fondo */
+        box-shadow: 5px 5px 5px #888888;
+        /* sombra */
+
+        display: block;
+        margin: 0 auto;
+        max-width: 80%;
+        height: auto;
+    }
+
+
+    #publiveruserfav h1 {
+        font-size: 1.5rem;
+    }
+
+    #publiveruserfav h2 {
+        font-size: 1.2rem;
+    }
+
+    #publiveruserfav img:not(#megusta img) {
+        border: 2px solid #03989E;
+        /* color del borde y ancho */
+        border-radius: 0.25rem;
+        /* radio de las esquinas */
+        padding: 8px;
+        /* espacio interior */
+        background-color: #03999ede;
+        /* color de fondo */
+        box-shadow: 5px 5px 5px #888888;
+        /* sombra */
+
+        display: block;
+        margin: 0 auto;
+        max-width: 80%;
+        height: auto;
+    }
+
+
+}

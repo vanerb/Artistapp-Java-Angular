@@ -1,0 +1,8 @@
+Los obsoletos son archivos que en principio no se usan pero por si acaso estan archivos
+
+php/usuarios/showavisosbyuser.php
+php/usuarios/showeventwithuser.php
+php/usuarios/showpublibyuser.php
+php/eventos/showevents.php
+php/publicaciones/showpubliuser.php
+php/avisos/showavisobyuser.php

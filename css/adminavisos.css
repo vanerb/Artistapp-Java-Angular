@@ -1,0 +1,10 @@
+button[disabled] {
+    background-color: #0077cc;
+    color: #fff;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  body {
+    background-color: #f4f4f4;
+}

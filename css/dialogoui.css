@@ -1,0 +1,30 @@
+.ui-dialog-titlebar{
+    background-color: #03989E;
+    color: #ffffff;
+    font-family: 'Bangers', cursive;
+    font-size: 25px;
+}
+
+.ui-dialog-content{
+    font-family: 'Patrick Hand', cursive;
+    font-size: 20px;
+}
+
+.ui-dialog-buttonpane{
+    background-color: #03989E;
+    color: #ffffff;
+}
+
+.ui-dialog-buttonset button{
+    font-family: 'Patrick Hand', cursive;
+}
+
+.ui-dialog-buttonset button:hover{
+    background-color: #03999ede;
+    color: #ffffff;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.ui-button-icon:hover{
+    background-color: #03999ede;
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <script src="js/recuperar.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/recuperar.css">
+    <link rel="stylesheet" href="css/formulario.css">
+    <link rel="stylesheet" href="css/fondo.css">
+    <script src="js/totop.js"></script>
+  <link rel="stylesheet" href="css/totop.css">
+  <link rel="stylesheet" href="css/dialogoui.css">
+</head>
+
+<body>
+  <div id="btn-arriba">
+    <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+  </div>
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+
+                        <h4 class="card-title text-center">Solicitud recuperación de contraseña</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="forgotPasswordForm" action="php/recuperar.php" method="post">
+                            <div class="form-group mb-3">
+                                <label for="email">Correo electrónico:</label>
+                                <input type="email" id="email" name="email" placeholder="Correo electrónico">
+                            </div>
+                            <br>
+                            <input type="submit" value="Enviar">
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <p class="text-center mb-0"> Inicia sesión <a href="login.html">iniciar sesión</a></p>
+                       
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div id="response"></div>
+    <footer class="bg-light py-3">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12 text-center">
+              <p>ARTISTAPP</p>
+              <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+              <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+              <p>© 2023 Todos los derechos reservados.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+</body>
+
+</html>

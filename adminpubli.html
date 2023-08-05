@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de publicaciones</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="js/checksession.js"></script>
+    <link rel="stylesheet" href="css/dialogoestilo.css">
+    <script src="js/adminpubli.js"></script>
+    <link rel="stylesheet" href="css/formulario.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="css/adminpubli.css">
+    <link rel="stylesheet" href="css/celdas.css">
+    <link rel="stylesheet" href="css/paginacion.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ABeeZee&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Convergence&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/fondo.css">
+    <script src="js/totop.js"></script>
+  <link rel="stylesheet" href="css/totop.css">
+  <link rel="stylesheet" href="css/dialogoui.css">
+</head>
+
+<body>
+    <div id="menu"></div>
+
+    <div id="btn-arriba">
+        <img src="media/totop.jpg" width="128px" height="128px" alt="Ir Arriba">
+      </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="display-4">PUBLICACIONES</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="publishow">
+                    <div class="table-responsive">
+                        <table id="tablapubli" class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Titulo</th>
+                                    <th scope="col">Descripcion</th>
+                                    <th scope="col">Tipo</th>
+                                    <th scope="col">Categoria</th>
+                                    <th scope="col">Usuario</th>
+                                    <th scope="col">me gusta</th>
+                                    <th scope="col">Imagen</th>
+                                    <th><button type="button" id="anadir">Añadir</button></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="paginacion">
+                        <!-- Aquí se agregarán los botones de paginación con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="botones">
+
+        </div>
+        <!-- Publicaciones -->
+        <div class="row" id="publicacion">
+
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <button id="cargar-mas-publi" style="display: none;">Cargar más</button>
+            </div>
+        </div>
+
+
+        <!-- Diálogo modal -->
+        <div id="addform" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close">&times;</span>
+                <form action="adminpubli.html" method="post" id="addpublicacion">
+                    <label for="nombre">Título</label>
+                    <input type="text" name="nombre" id="nombre" placeholder="Titulo">
+                    <label for="descripcion">Descripción</label>
+                    <input type="text" name="descripcion" id="descripcion" placeholder="Descripción">
+                    <label for="tipo">Tipo de publicación</label>
+
+                    <select name="tipo" id="tipo">
+                        <option value="public">Público</option>
+                        <option value="private">Privado</option>
+                    </select>
+                    <label for="id_categoria">Categoría</label>
+
+                    <select name="id_categoria" id="id_categoria"></select>
+                    <label for="imgpubli">Imagen</label>
+
+                    <input type="file" name="imgpubli" id="imgpubli" accept="image/jpeg, image/png">
+                    <input id="btadd" type="button" value="Anadir">
+                </form>
+            </div>
+        </div>
+
+        <div id="editform" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close">&times;</span>
+                <form action="adminpubli.html" method="post" id="editpublicacion">
+                    <label for="nombre">Título</label>
+                    <input type="text" name="nombre" id="nombre" placeholder="Titulo">
+                    <label for="descripcion">Descripción</label>
+                    <input type="text" name="descripcion" id="descripcion" placeholder="Descripción">
+                    <label for="tipo">Tipo de publicación</label>
+                    <select name="tipo" id="tipo">
+                        <option value="public">Público</option>
+                        <option value="private">Privado</option>
+                    </select>
+                    <label for="id_categoria">Categoría</label>
+                    <select name="id_categoria" id="id_categoria"></select>
+                    <label for="imgpublied">Imagen</label>
+                    <input type="file" name="imgpublied" id="imgpublied" accept="image/jpeg, image/png">
+                    <label for="megusta">Me gusta</label>
+                    <input type="number" name="megusta" id="megusta" placeholder="Me gusta">
+                    <input type="hidden" name="imgant" id="imgant">
+                    <input id="btedit" type="button" value="Editar">
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <footer class="bg-light py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>ARTISTAPP</p>
+          <p>Contacto: <a href="tel:+34 000 000 000">+34 000 000 000</a></p>
+          <p>Email: <a href="mailto:contacto@example.test">contacto@example.test</a></p>
+          <p>© 2023 Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
