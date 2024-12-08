@@ -4,7 +4,7 @@ session_start();
 include('Connection.php');
 include('Crud.php');
 
-session_start();
+//session_start();
 
 if (!is_null($_SESSION['user'])) {
     $sqlConnection = new Connection();
