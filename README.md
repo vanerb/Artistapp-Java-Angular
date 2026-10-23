@@ -1,62 +1,110 @@
+<div align="center">
+
 # ArtistApp
 
-> **Una comunidad para compartir arte, descubrir talento independiente y encontrarse alrededor de la creatividad.**
+### Un espacio digital para crear, compartir y encontrarse a través del arte.
 
-ArtistApp es una plataforma web que reúne una red social para artistas, una agenda de eventos y una tienda de piezas físicas y digitales. El proyecto transforma una aplicación heredada en una arquitectura separada de frontend y API, conservando la base de datos existente.
+Una comunidad para artistas independientes, organizadores y amantes del arte. Descubre obras, conecta con sus creadores, participa en eventos y explora una tienda de piezas originales.
 
-## El proyecto
+![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-compatible-4479A1?logo=mysql&logoColor=white)
 
-ArtistApp conecta a artistas, organizadores y amantes del arte en un mismo espacio. Cada perfil puede mostrar obra, avisos y actividad; la comunidad permite descubrir creadores, conversar y participar en eventos. Quienes venden pueden gestionar sus productos y pedidos desde el mismo entorno.
+</div>
 
-### Funcionalidades
+---
 
-- **Descubrir:** explorar obras, artistas, eventos y avisos con búsqueda, filtros y paginación.
-- **Perfiles y comunidad:** perfiles públicos, biografías, seguidores y seguidos, favoritos y likes persistentes.
-- **Publicaciones:** compartir y gestionar obras, controlar su visibilidad y conversar mediante comentarios.
-- **Eventos:** crear y editar encuentros, gestionar solicitudes de participación y abrir un chat para asistentes aceptados.
-- **Mensajería:** conversaciones directas con artistas y chats grupales de eventos en una bandeja unificada.
-- **Tienda:** catálogo de productos físicos y digitales, cesta, checkout, pedidos y descargas digitales protegidas.
-- **Avisos internos:** centro de notificaciones para actividad de la comunidad y comunicaciones importantes de administración.
-- **Administración:** panel protegido para gestionar cuentas, obras, tienda, eventos, avisos, categorías, pedidos e informes.
-- **Cuenta:** registro, acceso, recuperación y cambio de contraseña; las cuentas antiguas pueden iniciar sesión y migrar su contraseña a hash seguro.
+## Sobre el proyecto
 
-### Permisos por tipo de cuenta
+ArtistApp es una plataforma web que reúne en un mismo lugar una red social creativa, una agenda de eventos y una tienda para artistas. La aplicación se ha reconstruido con un frontend en Angular y una API REST en Laravel, conservando compatibilidad con el esquema histórico de MySQL.
 
-| Cuenta | Capacidades principales |
+El objetivo es ofrecer a cada persona un espacio donde mostrar su trabajo, descubrir nuevos creadores y participar en una comunidad artística.
+
+## Qué puedes hacer
+
+| Área | Funcionalidades |
 | --- | --- |
-| Administrador | Acceso al panel y gestión de recursos de la plataforma. |
-| Artista | Publicar obras, gestionar su perfil y vender productos. |
-| Organizador de eventos | Crear eventos y gestionar productos de tienda. |
-| Amante del arte | Descubrir, seguir perfiles, dar likes, comprar y participar en eventos. |
+| **Descubrir** | Explorar obras, artistas y eventos; buscar, filtrar y recorrer resultados paginados. |
+| **Comunidad** | Consultar perfiles, biografías, seguidores y seguidos; seguir cuentas y guardar obras favoritas. |
+| **Publicaciones** | Compartir y gestionar obras, indicar que te gustan y conversar en los comentarios. |
+| **Eventos** | Crear eventos según el tipo de cuenta, gestionar solicitudes y conversar en el chat grupal del evento. |
+| **Mensajes** | Mantener conversaciones directas con otros usuarios desde una bandeja unificada. |
+| **Tienda** | Publicar productos físicos o digitales, añadirlos a la cesta, comprar y consultar pedidos. |
+| **Avisos** | Recibir notificaciones de actividad y comunicaciones importantes de administración. |
+| **Administración** | Gestionar recursos de la plataforma desde un panel protegido. |
+| **Cuenta** | Crear una cuenta, iniciar sesión, actualizar el perfil y gestionar la contraseña. |
 
-Los identificadores de tipo de cuenta se conservan del esquema histórico: `1` administrador, `3` organizador, `5` artista y `7` visitante/amante del arte.
+### Tipos de cuenta
 
-## Tecnologías
+| Tipo | Permisos principales |
+| --- | --- |
+| Administrador | Panel de administración y gestión de la plataforma. |
+| Artista | Publicar obras y gestionar productos para la tienda. |
+| Organizador de eventos | Crear eventos y gestionar productos para la tienda. |
+| Amante del arte | Descubrir, seguir artistas, comprar y participar en eventos. |
 
-- **Frontend:** Angular 22, componentes standalone, signals, rutas con carga diferida, signals y formularios de Angular.
-- **Backend:** Laravel 13, API REST en JSON y autenticación con Laravel Sanctum.
-- **Persistencia:** MySQL o MariaDB compatible con el esquema histórico de ArtistApp.
-- **Archivos:** recursos estáticos en `frontend/public`, cargas públicas en el almacenamiento de Laravel y descargas digitales en almacenamiento privado.
+Los IDs históricos se mantienen: `1` administrador, `3` organizador, `5` artista y `7` amante del arte.
 
-## Arquitectura
+## Tecnologías y arquitectura
+
+| Capa | Tecnología | Responsabilidad |
+| --- | --- | --- |
+| Frontend | Angular 22, TypeScript, Signals y RxJS | Interfaz, navegación, formularios y estado reactivo. |
+| Backend | Laravel 13, PHP 8.3 y Sanctum | API JSON, autenticación, permisos y lógica de negocio. |
+| Datos | MySQL / MariaDB compatible | Persistencia basada en el esquema de ArtistApp y migraciones Laravel. |
+| Desarrollo local | Proxy de Angular | Dirige `/api` y `/storage` hacia Laravel durante el desarrollo. |
 
 ```text
 Navegador
    │
    ▼
-Angular · localhost:4200
-   │  proxy /api y /storage
+Angular · http://localhost:4200
+   │  /api y /storage mediante proxy
    ▼
-Laravel · localhost:8000
+Laravel · http://127.0.0.1:8000
    │
    ├── MySQL · vrb_artistapp
-   ├── storage público · imágenes nuevas
-   └── storage privado · descargas compradas
+   ├── Almacenamiento público · imágenes y archivos visibles
+   └── Almacenamiento privado · descargas digitales protegidas
 ```
 
-El desarrollo local usa el proxy de Angular para enviar `/api` y `/storage` a Laravel, sin abrir el frontend mediante `file://` ni depender de CORS permisivo. Las migraciones complementan las tablas que faltan y mantienen intactas las tablas históricas. El SQL de referencia está en `BaseDeDatos/vrb_artistapp.sql`.
+## Estructura del repositorio
 
-## Puesta en marcha local
+```text
+Artistapp-PHP-JS/
+├── .gitignore                     # Reglas comunes para frontend y backend
+├── README.md
+├── BaseDeDatos/
+│   ├── vrb_artistapp.sql           # Volcado original
+│   └── vrb_artistapp_muestra.sql   # Base de demostración con identidades ficticias
+├── frontend/                       # Aplicación Angular
+│   ├── public/                     # Recursos estáticos e imágenes
+│   ├── src/
+│   │   └── app/
+│   │       ├── core/               # API, autenticación, guards y estado compartido
+│   │       ├── pages/              # Páginas de la aplicación
+│   │       ├── shared/             # Navegación, modales y componentes reutilizables
+│   │       ├── app.config.ts       # Configuración de Angular
+│   │       ├── app.routes.ts       # Rutas
+│   │       └── app.css             # Estilos globales
+│   ├── package.json
+│   └── proxy.conf.json
+└── backend/                        # API Laravel
+    ├── app/
+    │   ├── Console/Commands/       # Comandos Artisan del proyecto
+    │   ├── Http/Controllers/Api/   # Controladores de la API
+    │   ├── Models/                 # Modelos Eloquent
+    │   └── Services/               # Servicios de dominio y notificaciones
+    ├── database/
+    │   ├── migrations/             # Tablas y extensiones del esquema
+    │   └── seeders/                 # Catálogos iniciales
+    ├── routes/api.php              # Rutas REST
+    ├── storage/                    # Archivos y logs de Laravel
+    └── composer.json
+```
+
+## Puesta en marcha
 
 ### Requisitos
 
@@ -65,9 +113,9 @@ El desarrollo local usa el proxy de Angular para enviar `/api` y `/storage` a La
 - Composer 2.
 - MySQL 8 o MariaDB compatible.
 
-### 1. Preparar Laravel
+### 1. Instalar y configurar el backend
 
-En PowerShell, desde la raíz del proyecto:
+Desde PowerShell, en la raíz del repositorio:
 
 ```powershell
 cd .\backend
@@ -75,11 +123,11 @@ Copy-Item .env.example .env
 composer install
 ```
 
-Configura en `backend/.env` la conexión a MySQL. Para conservar la base de datos anterior, crea o selecciona `vrb_artistapp` e importa `BaseDeDatos/vrb_artistapp.sql`. **No ejecutes `migrate:fresh`** si quieres preservar sus datos.
+Edita `backend/.env` y configura la conexión MySQL. Crea o selecciona la base `vrb_artistapp`.
 
-Para una instalación de demostración desde cero, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. Las cuentas incluidas usan `Usuario123`; después ejecuta `php artisan migrate --seed` desde `backend/` para registrar las migraciones y completar los catálogos.
+Para usar el volcado histórico, importa `BaseDeDatos/vrb_artistapp.sql`. Para una demo aislada, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. En el SQL de muestra, las cuentas usan la contraseña `Usuario123`; los nombres y textos de muestra son ficticios.
 
-Para una instalación vacía con administrador inicial, configura `ADMIN_NAME`, `ADMIN_USERNAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` en `.env`. Después ejecuta:
+Después, desde `backend/`, ejecuta:
 
 ```powershell
 php artisan key:generate
@@ -88,56 +136,42 @@ php artisan storage:link
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Para crear o completar únicamente los tipos de usuario y las categorías, ejecuta desde `backend/`:
+Para crear o completar únicamente las categorías y tipos de usuario:
 
 ```powershell
 php artisan artistapp:setup-catalogs
 ```
 
-El comando aplica las migraciones pendientes y carga esos catálogos de forma idempotente; no elimina usuarios ni otros datos.
+El comando también aplica migraciones pendientes y se puede volver a ejecutar sin duplicar esos catálogos. **No uses `php artisan migrate:fresh`** sobre una base cuyos datos quieras conservar, porque elimina sus tablas.
 
-Si PowerShell no encuentra `php` o `composer`, instala esas herramientas o añade sus directorios al `PATH` (por ejemplo, desde Laragon).
+Si PowerShell no reconoce `php` o `composer`, instala esas herramientas o agrega sus carpetas al `PATH` (por ejemplo, desde Laragon).
 
-### 2. Preparar Angular
+### 2. Instalar y arrancar el frontend
 
-En otra terminal, desde la raíz:
+En una segunda terminal, desde la raíz del repositorio:
 
 ```powershell
 cd .\frontend
 npm install
-ng serve --proxy-config proxy.conf.json
+npm start
 ```
 
-El backend se inicia desde otra terminal con `php artisan serve` (el bloque anterior fija explícitamente el host y el puerto 8000). Para Angular también puedes usar `npm start`, que ejecuta `ng serve` con ese mismo proxy. Abre [http://localhost:4200](http://localhost:4200).
+`npm start` ejecuta Angular con el proxy de desarrollo configurado. Abre [http://localhost:4200](http://localhost:4200). Mantén el backend activo en la otra terminal.
 
-Para generar la compilación de producción:
+Para compilar la aplicación:
 
 ```powershell
 npm run build
 ```
 
-### Correo de recuperación
+### Restablecimiento de contraseña
 
-Por defecto, Laravel registra los correos en `backend/storage/logs/laravel.log`. Configura SMTP en `.env` para enviarlos realmente.
+En desarrollo, Laravel registra los correos de recuperación en `backend/storage/logs/laravel.log`. Configura SMTP en `backend/.env` para enviar correos reales.
 
-## Estructura del repositorio
+## Datos de demostración
 
-```text
-frontend/                 Aplicación Angular
-  public/                 Recursos estáticos y multimedia
-  src/app/                Páginas, componentes y servicios
-backend/                  API Laravel
-  app/Http/Controllers/   Controladores REST
-  database/migrations/     Esquema y funciones de comunidad
-BaseDeDatos/              Volcado SQL histórico para importar
-archivos/                 Archivos digitales históricos de referencia
-```
-
-## Estado técnico
-
-La aplicación Angular compila con `npm run build`. La API expone rutas para autenticación, perfiles, comunidad, publicaciones, eventos, tienda, pedidos, avisos, informes y administración. La verificación funcional completa requiere configurar MySQL y probar con una base de datos local.
+El SQL de muestra conserva IDs, relaciones y rutas multimedia para poder recorrer la aplicación; las cuentas, eventos y textos de ejemplo son inventados. Las cuentas incluidas usan `Usuario123` como contraseña. No importes el SQL de muestra sobre una base que contenga datos que quieras conservar.
 
 ## Autora
 
 **Vanesa Ribera Bautista** · Proyecto final de ciclo de Desarrollo de Aplicaciones Web.
-
