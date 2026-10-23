@@ -77,6 +77,8 @@ composer install
 
 Configura en `backend/.env` la conexión a MySQL. Para conservar la base de datos anterior, crea o selecciona `vrb_artistapp` e importa `BaseDeDatos/vrb_artistapp.sql`. **No ejecutes `migrate:fresh`** si quieres preservar sus datos.
 
+Para una instalación de demostración desde cero, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. Las cuentas incluidas usan `Usuario123`; después ejecuta `php artisan migrate --seed` desde `backend/` para registrar las migraciones y completar los catálogos.
+
 Para una instalación vacía con administrador inicial, configura `ADMIN_NAME`, `ADMIN_USERNAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` en `.env`. Después ejecuta:
 
 ```powershell
