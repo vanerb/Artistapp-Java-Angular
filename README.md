@@ -69,40 +69,31 @@ Laravel · http://127.0.0.1:8000
    └── Almacenamiento privado · descargas digitales protegidas
 ```
 
-## Estructura del repositorio
+## Cómo está construido
 
-```text
-Artistapp-PHP-JS/
-├── .gitignore                     # Reglas comunes para frontend y backend
-├── README.md
-├── BaseDeDatos/
-│   ├── vrb_artistapp.sql           # Volcado original
-│   └── vrb_artistapp_muestra.sql   # Base de demostración con identidades ficticias
-├── frontend/                       # Aplicación Angular
-│   ├── public/                     # Recursos estáticos e imágenes
-│   ├── src/
-│   │   └── app/
-│   │       ├── core/               # API, autenticación, guards y estado compartido
-│   │       ├── pages/              # Páginas de la aplicación
-│   │       ├── shared/             # Navegación, modales y componentes reutilizables
-│   │       ├── app.config.ts       # Configuración de Angular
-│   │       ├── app.routes.ts       # Rutas
-│   │       └── app.css             # Estilos globales
-│   ├── package.json
-│   └── proxy.conf.json
-└── backend/                        # API Laravel
-    ├── app/
-    │   ├── Console/Commands/       # Comandos Artisan del proyecto
-    │   ├── Http/Controllers/Api/   # Controladores de la API
-    │   ├── Models/                 # Modelos Eloquent
-    │   └── Services/               # Servicios de dominio y notificaciones
-    ├── database/
-    │   ├── migrations/             # Tablas y extensiones del esquema
-    │   └── seeders/                 # Catálogos iniciales
-    ├── routes/api.php              # Rutas REST
-    ├── storage/                    # Archivos y logs de Laravel
-    └── composer.json
+ArtistApp separa la interfaz, la lógica de negocio y los datos. Angular presenta la aplicación y se comunica con Laravel mediante peticiones HTTP con respuestas JSON. Laravel valida cada petición, aplica las reglas de acceso y coordina los modelos, la base de datos y los archivos.
+
+```mermaid
+flowchart LR
+    U[Persona usuaria<br/>Navegador] --> FE[Frontend Angular 22<br/>Componentes · rutas · Signals · RxJS]
+    FE -->|HTTP / JSON<br/>proxy local en desarrollo| API[API REST Laravel 13<br/>Controladores · servicios · Sanctum]
+    API --> MODELS[Modelos Eloquent<br/>Usuarios · obras · eventos · tienda]
+    MODELS --> DB[(MySQL / MariaDB<br/>vrb_artistapp)]
+    API --> PUB[Almacenamiento público<br/>Imágenes y recursos]
+    API --> PRIV[Almacenamiento privado<br/>Descargas digitales protegidas]
 ```
+
+### Interfaz Angular
+
+La aplicación está organizada en páginas para cada área (descubrimiento, perfiles, eventos, tienda y administración) y componentes compartidos para elementos como la navegación, los modales y el chat. Los servicios del núcleo centralizan las llamadas a la API, la autenticación y el estado compartido. Angular Signals mantiene reactivos los datos de la sesión, la cesta y las notificaciones; RxJS gestiona los flujos asíncronos.
+
+### API Laravel
+
+Las rutas de `api.php` dirigen las peticiones a controladores REST. Estos aplican validaciones y permisos, y usan modelos Eloquent y servicios para acceder a los datos o ejecutar operaciones compartidas. Laravel Sanctum protege las operaciones que requieren una sesión autenticada. Las migraciones y seeders complementan el esquema histórico y preparan los catálogos.
+
+### Datos, imágenes y comunicación local
+
+MySQL o MariaDB conserva las cuentas, publicaciones, relaciones, eventos, pedidos y demás información. Las imágenes se sirven desde almacenamiento público; los archivos digitales comprados se mantienen en almacenamiento privado para controlar su descarga. En desarrollo, el proxy de Angular reenvía `/api` y `/storage` al servidor Laravel, que se ejecuta por separado.
 
 ## Puesta en marcha
 
