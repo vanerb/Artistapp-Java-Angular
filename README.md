@@ -103,10 +103,10 @@ En otra terminal, desde la raíz:
 ```powershell
 cd .\frontend
 npm install
-npm start
+ng serve --proxy-config proxy.conf.json
 ```
 
-Abre [http://localhost:4200](http://localhost:4200). Laravel debe seguir activo en `http://127.0.0.1:8000`.
+El backend se inicia desde otra terminal con `php artisan serve` (el bloque anterior fija explícitamente el host y el puerto 8000). Para Angular también puedes usar `npm start`, que ejecuta `ng serve` con ese mismo proxy. Abre [http://localhost:4200](http://localhost:4200).
 
 Para generar la compilación de producción:
 
