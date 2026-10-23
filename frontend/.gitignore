@@ -9,7 +9,17 @@
 # Node
 /node_modules
 npm-debug.log
+npm-debug.log*
 yarn-error.log
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
 
 # IDEs and editors
 .idea/
@@ -38,6 +48,11 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+
+# Local build and tool output
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
 
 # System files
 .DS_Store

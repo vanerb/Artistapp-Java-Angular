@@ -1,9 +1,36 @@
+# Laravel dependencies
 /vendor
-/.env
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Laravel generated files and runtime data
 /bootstrap/cache/*.php
 /storage/*.key
+/storage/app/private/*
+/storage/app/public/*
+!/storage/app/private/.gitignore
+!/storage/app/public/.gitignore
 /storage/framework/cache/data/*
 /storage/framework/sessions/*
+/storage/framework/testing/*
 /storage/framework/views/*
 /storage/logs/*.log
 /public/storage
+
+# Test and coverage output
+/.phpunit.cache
+/coverage
+/build
+
+# Local tooling and operating system files
+.phpstorm.meta.php
+/.idea
+/.vscode
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
