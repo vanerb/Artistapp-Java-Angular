@@ -10,9 +10,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach ([1=>'Administrador',3=>'Organizador Eventos',5=>'Artista',7=>'Visitante'] as $id=>$nombre) DB::table('tipo_usuario')->updateOrInsert(['id'=>$id],['nombre'=>$nombre]);
+        $this->call(CatalogSeeder::class);
         foreach ([1=>'Físico',2=>'Digital'] as $id=>$nombre) DB::table('tipo_producto')->updateOrInsert(['id'=>$id],['nombre'=>$nombre]);
-        foreach (['Anime','Manga','Cosplay','Cartoon','Realismo','Yuri','Yaoi','Diseños 3D','Comic'] as $nombre) DB::table('categoria')->updateOrInsert(['nombre'=>$nombre],['nombre'=>$nombre]);
 
         $adminEmail = env('ADMIN_EMAIL');
         $adminPassword = env('ADMIN_PASSWORD');
@@ -33,3 +32,4 @@ class DatabaseSeeder extends Seeder
         }
     }
 }
+

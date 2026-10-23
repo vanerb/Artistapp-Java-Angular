@@ -86,6 +86,14 @@ php artisan storage:link
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
+Para crear o completar únicamente los tipos de usuario y las categorías, ejecuta desde `backend/`:
+
+```powershell
+php artisan artistapp:setup-catalogs
+```
+
+El comando aplica las migraciones pendientes y carga esos catálogos de forma idempotente; no elimina usuarios ni otros datos.
+
 Si PowerShell no encuentra `php` o `composer`, instala esas herramientas o añade sus directorios al `PATH` (por ejemplo, desde Laragon).
 
 ### 2. Preparar Angular
