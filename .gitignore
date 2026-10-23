@@ -1,0 +1,75 @@
+# Angular / frontend dependencies and build output
+/frontend/node_modules/
+/frontend/dist/
+/frontend/tmp/
+/frontend/out-tsc/
+/frontend/bazel-out/
+/frontend/.angular/cache/
+/frontend/coverage/
+/frontend/typings/
+/frontend/__screenshots__/
+/frontend/.sass-cache/
+/frontend/*.tsbuildinfo
+/frontend/.eslintcache
+/frontend/.stylelintcache
+
+# Frontend local environment and secrets
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+!/frontend/.env.*.example
+
+# Frontend logs
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+/frontend/testem.log
+/frontend/libpeerconnection.log
+/frontend/connect.lock
+
+# Laravel / backend dependencies and generated files
+/backend/vendor/
+/backend/bootstrap/cache/*.php
+/backend/storage/*.key
+/backend/storage/app/private/*
+/backend/storage/app/public/*
+!/backend/storage/app/private/.gitignore
+!/backend/storage/app/public/.gitignore
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/testing/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*.log
+/backend/public/storage
+/backend/.phpunit.cache/
+/backend/coverage/
+/backend/build/
+
+# Backend local environment and secrets
+/backend/.env
+/backend/.env.*
+!/backend/.env.example
+!/backend/.env.*.example
+
+# Editor and operating system files
+**/.idea/
+**/.vscode/*
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+!**/.vscode/extensions.json
+!**/.vscode/mcp.json
+**/.history/
+**/.DS_Store
+**/Thumbs.db
+**/*.swp
+**/*.swo
+**/.phpstorm.meta.php
+**/.project
+**/.classpath
+**/.c9/
+**/*.launch
+**/.settings/
+**/*.sublime-workspace
