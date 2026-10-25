@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 
- type DashboardLink = { title: string; description: string; icon: string; route: string; tone: string };
+ type DashboardLink = { title: string; description: string; icon: string; route: string; tone: string; queryParams?: Record<string, string> };
 
 @Component({
   standalone: true,
@@ -26,7 +26,7 @@ import { AuthService } from '../core/auth.service';
       <h2 class="section-title">¿Qué quieres hacer hoy?</h2>
       <div class="cards">
         @for (item of links(); track item.title) {
-          <a class="action-card" [routerLink]="item.route">
+          <a class="action-card" [routerLink]="item.route" [queryParams]="item.queryParams">
             <span class="icon" [class]="'icon ' + item.tone">{{ item.icon }}</span>
             <span class="card-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
             <b class="arrow">↗</b>
@@ -53,13 +53,27 @@ export class UserDashboard {
   readonly welcomeText = computed(() => this.role() === 5 ? 'Tu espacio para publicar obras, mantener tu catálogo y consultar los pedidos de tus compradores.' : this.role() === 3 ? 'Todo lo que necesitas para compartir publicaciones, organizar eventos y vender productos.' : 'Explora la comunidad artística, encuentra piezas originales y mantén tus compras bajo control.');
   readonly links = computed<DashboardLink[]>(() => {
     const common: DashboardLink[] = [
-      { title: 'Mi perfil y mi espacio', description: 'Actualiza tus datos y consulta tus contenidos.', icon: '◉', route: '/perfil', tone: 'purple' },
-      { title: 'Explorar la comunidad', description: 'Descubre publicaciones, artistas y eventos.', icon: '✳', route: '/descubrir', tone: 'peach' },
-      { title: 'Tienda ArtistApp', description: 'Explora productos y piezas originales.', icon: '◇', route: '/tienda', tone: 'green' },
-      { title: 'Mis compras', description: 'Consulta los pedidos que has realizado como cliente.', icon: '↗', route: '/pedidos', tone: 'cream' },
+      { title: 'Descubrir arte', description: 'Explora publicaciones, artistas y eventos de la comunidad.', icon: '✳', route: '/descubrir', tone: 'peach' },
+      { title: 'Tienda', description: 'Encuentra obras y productos originales.', icon: '◇', route: '/tienda', tone: 'green' },
+      { title: 'Mis compras', description: 'Consulta el estado de tus pedidos y confirma las entregas.', icon: '↗', route: '/pedidos', tone: 'cream' },
+      { title: 'Mensajes', description: 'Continúa tus conversaciones.', icon: '✉', route: '/mensajes', tone: 'purple' },
+      { title: 'Avisos', description: 'Revisa las notificaciones de tu cuenta.', icon: '♧', route: '/avisos', tone: 'peach' },
+      { title: 'Mi perfil', description: 'Edita tus datos personales y contraseña.', icon: '◉', route: '/perfil', tone: 'purple' },
     ];
-    if (this.role() === 5) return [common[0], { title: 'Publicaciones y catálogo', description: 'Crea obras y gestiona tus productos desde tu perfil.', icon: '▧', route: '/perfil', tone: 'peach' }, common[2], common[3], { title: 'Pedidos recibidos', description: 'Consulta las compras que otras personas hacen de tus productos.', icon: '↙', route: '/pedidos-recibidos', tone: 'green' }, common[1]];
-    if (this.role() === 3) return [common[0], { title: 'Eventos y participantes', description: 'Gestiona tus eventos y solicitudes desde tu espacio.', icon: '⌁', route: '/perfil', tone: 'peach' }, { title: 'Publicaciones y productos', description: 'Comparte novedades y mantén tu catálogo actualizado.', icon: '◇', route: '/perfil', tone: 'green' }, common[3], { title: 'Pedidos recibidos', description: 'Consulta las compras que otras personas hacen de tus productos.', icon: '↙', route: '/pedidos-recibidos', tone: 'green' }, common[1]];
-    return [common[2], common[3], common[1], { title: 'Mensajes', description: 'Continúa tus conversaciones con la comunidad.', icon: '✉', route: '/mensajes', tone: 'purple' }];
+    if (this.role() === 5) return [
+      { title: 'Mis obras', description: 'Publica una obra o administra tus publicaciones.', icon: '▧', route: '/perfil', tone: 'purple' },
+      { title: 'Mi tienda', description: 'Añade productos y gestiona tu catálogo.', icon: '◇', route: '/perfil', queryParams: { section: 'tienda' }, tone: 'green' },
+      { title: 'Pedidos recibidos', description: 'Actualiza el estado de los pedidos de tus compradores.', icon: '↙', route: '/pedidos-recibidos', tone: 'cream' },
+      common[0], common[1], common[2], common[3], common[4], common[5],
+    ];
+    if (this.role() === 3) return [
+      { title: 'Mis publicaciones', description: 'Comparte novedades y administra tus obras.', icon: '▧', route: '/perfil', queryParams: { section: 'obras' }, tone: 'purple' },
+      { title: 'Gestionar eventos', description: 'Consulta tus eventos y la participación.', icon: '⌁', route: '/perfil', queryParams: { section: 'eventos' }, tone: 'peach' },
+      { title: 'Mi tienda', description: 'Añade productos y administra tu catálogo.', icon: '◇', route: '/perfil', queryParams: { section: 'tienda' }, tone: 'green' },
+      { title: 'Pedidos recibidos', description: 'Gestiona los pedidos de tus productos.', icon: '↙', route: '/pedidos-recibidos', tone: 'cream' },
+      common[0], common[1], common[2], common[3], common[4], common[5],
+    ];
+    return [common[0], common[1], common[2], common[3], common[4], common[5],
+      { title: 'Mis favoritos', description: 'Vuelve a las obras que has guardado.', icon: '♡', route: '/perfil', queryParams: { section: 'favoritos' }, tone: 'peach' }];
   });
 }

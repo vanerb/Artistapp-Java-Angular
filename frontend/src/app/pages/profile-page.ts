@@ -1,7 +1,7 @@
 import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Api } from '../core/api';
 import { AuthService } from '../core/auth.service';
 import { assetUrl } from '../core/asset-url';
@@ -229,23 +229,33 @@ type Artwork = {
         </div>
       }
       @if (section() === 'tienda' && canManageProducts()) {
-        <section class="manage">
-          <div>
+        <section class="manage store-manage">
+          <div class="store-intro">
             <span class="kicker">TU TIENDA</span>
             <h2>Tu escaparate</h2>
             <p>Gestiona las piezas físicas y descargas digitales que compartes con la comunidad.</p>
-            <button class="primary" (click)="openModal('product')">Añadir producto</button>
+            <button class="primary" (click)="openModal('product')">Añadir producto <span>＋</span></button>
           </div>
-          <div class="mini-list">
+          <div class="store-product-grid">
             @for (item of products(); track item.id) {
-              <article>
-                <img [src]="image(item.imagen)" [alt]="item.nombre" /><span>{{ item.nombre }}</span
-                ><strong>{{ item.precio | currency: 'EUR' }}</strong
-                ><button class="row-edit" (click)="editProduct(item)">Editar</button
-                ><button class="row-edit danger" (click)="removeProduct(item)">Eliminar</button>
+              <article class="store-product-card">
+                <div class="store-product-image">
+                  <img [src]="image(item.imagen)" (error)="imageError($event)" [alt]="item.nombre" loading="lazy" />
+                  <span>{{ item.cantidad > 0 ? 'EN STOCK' : 'AGOTADO' }}</span>
+                </div>
+                <div class="store-product-info">
+                  <span class="store-product-type">PIEZA ORIGINAL</span>
+                  <h3>{{ item.nombre }}</h3>
+                  <p>{{ item.descripcion || 'Una pieza de tu escaparate creativo.' }}</p>
+                  <strong class="store-product-price">{{ item.precio | currency: 'EUR' }}</strong>
+                  <div class="store-product-actions">
+                    <button class="row-edit" (click)="editProduct(item)">Editar</button>
+                    <button class="row-edit danger" (click)="removeProduct(item)">Eliminar</button>
+                  </div>
+                </div>
               </article>
             } @empty {
-              <p class="empty-inline">Todavía no tienes productos en tu tienda.</p>
+              <p class="empty-inline store-empty">Todavía no tienes productos en tu tienda. Pulsa «Añadir producto» para crear el primero.</p>
             }
           </div>
         </section>
@@ -911,6 +921,56 @@ type Artwork = {
         background: #f6e5d7;
         border-radius: 17px;
       }
+      .store-manage {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 22px;
+        background: #f6e5d7;
+      }
+      .store-intro {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .store-intro p { max-width: 620px; }
+      .store-intro .primary span { margin-left: 6px; color: #d9fa72; }
+      .store-product-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 17px;
+        align-items: stretch;
+      }
+      .store-product-card {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid #ece5de;
+        border-radius: 16px;
+        background: #fffdf9;
+        box-shadow: 0 4px 15px #27243208;
+        transition: transform .2s, box-shadow .2s;
+      }
+      .store-product-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px #27243212; }
+      .store-product-image {
+        height: 230px;
+        position: relative;
+        overflow: hidden;
+        background: #eee8e1;
+      }
+      .store-product-image img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .3s; }
+      .store-product-card:hover .store-product-image img { transform: scale(1.035); }
+      .store-product-image > span {
+        position: absolute; top: 12px; left: 12px; border-radius: 99px;
+        padding: 7px 10px; background: #fffdf9e8; color: #4b3d9a;
+        font-size: 8px; font-weight: 850; letter-spacing: .1em;
+      }
+      .store-product-info { padding: 15px; }
+      .store-product-type { color: #7045d4; font-size: 8px; font-weight: 850; letter-spacing: .13em; }
+      .store-product-info h3 { margin: 7px 0 5px; color: #272432; font-size: 16px; letter-spacing: -.035em; }
+      .store-product-info > p { height: 38px; overflow: hidden; margin: 0 0 10px; color: #77727e; font-size: 11px; line-height: 1.6; }
+      .store-product-price { display: block; color: #272432; font-size: 18px; margin-bottom: 13px; }
+      .store-product-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .store-product-actions .row-edit { padding: 9px 13px; font-size: 11px; }
+      .store-product-actions .danger { background: #fbe5e2; color: #9b463d; }
+      .store-empty { grid-column: 1 / -1; padding: 22px; background: #fffdf9; border-radius: 12px; }
       .event-manage {
         background: #e9e2fa;
       }
@@ -1170,6 +1230,9 @@ type Artwork = {
           grid-template-columns: 1fr;
           gap: 12px;
         }
+        .store-product-grid, .liked-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .store-product-image { height: 190px; }
+        .liked-art img { height: 200px; }
         .manage > .mini-list {
           grid-column: 1/-1;
         }
@@ -1178,6 +1241,10 @@ type Artwork = {
         }
       }
       @media (max-width: 520px) {
+        .store-product-grid, .liked-grid { grid-template-columns: 1fr; }
+        .store-product-image { height: 250px; }
+        .liked-art img { height: 260px; }
+        .store-product-info h3, .liked-art strong { font-size: 17px; }
         .wrap {
           padding: 30px 17px 55px;
         }
@@ -1328,14 +1395,26 @@ type Artwork = {
         color: #77727e;
         font-size: 10px;
       }
-      .liked-grid article {
-        padding: 10px;
+      .liked-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 17px;
       }
+      .liked-grid article {
+        min-width: 0;
+        overflow: hidden;
+        padding: 0;
+        border: 1px solid #ece5de;
+        border-radius: 16px;
+        background: #fffdf9;
+        box-shadow: 0 4px 15px #27243208;
+        transition: transform .2s, box-shadow .2s;
+      }
+      .liked-grid article:hover { transform: translateY(-3px); box-shadow: 0 14px 28px #27243212; }
       .liked-art {
         display: flex;
         width: 100%;
-        align-items: center;
-        gap: 11px;
+        align-items: stretch;
+        flex-direction: column;
         padding: 0;
         border: 0;
         background: transparent;
@@ -1343,30 +1422,28 @@ type Artwork = {
         cursor: pointer;
       }
       .liked-art img {
-        width: 72px;
-        height: 72px;
+        width: 100%;
+        height: 245px;
+        display: block;
         object-fit: cover;
-        border-radius: 9px;
         background: #eee8e1;
       }
-      .liked-art span,
-      .liked-art strong,
+      .liked-art span { display: block; padding: 14px 15px 0; }
+      .liked-art strong { display: block; color: #272432; font-size: 16px; line-height: 1.35; }
       .liked-art small {
         display: block;
-      }
-      .liked-art small {
-        margin-top: 5px;
+        margin-top: 6px;
         color: #77727e;
-        font-size: 10px;
+        font-size: 11px;
       }
       .unlike {
-        margin-top: 11px;
+        margin: 12px 15px 15px;
         border: 0;
         border-radius: 99px;
-        padding: 8px 11px;
+        padding: 9px 12px;
         background: #fbe5e2;
         color: #9b463d;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 750;
         cursor: pointer;
       }
@@ -1456,6 +1533,7 @@ export class ProfilePage {
   );
   private pendingConfirmation: (() => void) | null = null;
   private readonly api = inject(Api);
+  private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthService);
   readonly modal = signal<
     'profile' | 'publication' | 'product' | 'event' | 'notice' | 'password' | null
@@ -1498,6 +1576,11 @@ export class ProfilePage {
   product = { nombre: '', descripcion: '', precio: 1, cantidad: 1, id_tipo: 1 };
   event = { nombre: '', ubicacion: '', link: '', fecha_inicio: '', fecha_fin: '' };
   constructor() {
+    const section = this.route.snapshot.queryParamMap.get('section');
+    const allowedSections = ['obras', 'avisos', 'eventos', 'favoritos', 'tienda'];
+    if (section && allowedSections.includes(section)) {
+      this.section.set(section as 'obras' | 'avisos' | 'eventos' | 'favoritos' | 'tienda');
+    }
     this.load();
     this.api
       .get<{ id: number; nombre: string }[]>('/categories')
