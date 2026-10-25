@@ -21,6 +21,7 @@ class NoticeController extends Controller
 
     public function store(Request $request,InAppNotifier $notifier): JsonResponse
     {
+        abort_unless((int)$request->user()->id_tipo === 1, 403, 'Solo administración puede publicar avisos generales.');
         $data=$request->validate(['titulo'=>['required','string','max:255'],'aviso'=>['required','string','max:255']]);
         $id=DB::table('avisos')->insertGetId($data+['fecha_publicacion'=>now()->toDateString(),'hora'=>now()->format('H:i:s'),'id_usuario'=>$request->user()->id]);
         if((int)$request->user()->id_tipo===1) {

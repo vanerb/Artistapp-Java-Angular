@@ -29,7 +29,7 @@ class PublicationController extends Controller
 
     public function store(Request $request,InAppNotifier $notifier): JsonResponse
     {
-        abort_unless(in_array((int)$request->user()->id_tipo,[1,5],true),403,'Solo artistas pueden publicar obras.');
+        abort_unless(in_array((int)$request->user()->id_tipo,[1,3,5],true),403,'Solo artistas y organizadores pueden publicar obras.');
         $data = $request->validate(['titulo' => ['required','string','max:255'], 'descripcion' => ['required','string','max:255'], 'id_categoria' => ['required','integer','exists:categoria,id'], 'imagen' => ['nullable','image','max:8192']]);
         $image = $request->file('imagen')?->store('uploads/publicaciones', 'public') ?? '';
         $id = DB::table('publicaciones')->insertGetId(['titulo' => $data['titulo'], 'descripcion' => $data['descripcion'], 'tipo' => 'public', 'id_categoria' => $data['id_categoria'], 'id_usuario' => $request->user()->id, 'megusta' => 0, 'imagen' => $image]);

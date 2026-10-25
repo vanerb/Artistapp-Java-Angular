@@ -9,3 +9,10 @@ export const adminGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) return router.createUrlTree(['/login'], { queryParams: { redirect: '/admin' } });
   return auth.isAdmin() || router.parseUrl('/descubrir');
 };
+
+export const userDashboardGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.isAuthenticated()) return router.createUrlTree(['/login'], { queryParams: { redirect: '/panel' } });
+ return !auth.isAdmin() || router.parseUrl('/admin');
+};

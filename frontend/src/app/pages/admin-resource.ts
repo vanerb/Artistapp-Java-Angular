@@ -12,70 +12,963 @@ type Field = { key: string; label: string; type?: string; required?: boolean };
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, ConfirmModal],
   template: `
-    <section class="resource"><a routerLink="/admin" class="back">← Panel de control</a>
-      <div class="head"><div><span class="kicker">GESTIÓN ARTISTAPP</span><h1>{{config.title}}.</h1><p>{{config.subtitle}}</p></div><div class="head-actions">@if(config.fields.length){<button class="create-button" (click)="openCreate()">Crear {{config.singular}}</button>}<button class="refresh" (click)="load()">Actualizar</button></div></div>
-      @if(message()){<div class="message">{{message()}}</div>}
-      <div class="table-wrap"><table><thead><tr>@for(column of config.columns;track column){<th>{{labels[column]||column}}</th>}<th>Acciones</th></tr></thead><tbody>
-        @for(row of rows();track row.id){<tr>@for(column of config.columns;track column){<td>@if(column==='imagen'){<img class="thumb" [src]="image(row[column])" (error)="imageError($event)" alt="">}@else if(column==='estado'&&(resource==='pedidos'||resource==='informes')){<select [value]="row[column]" (change)="status(row,readValue($event))"><option value="pendiente">Pendiente</option><option value="en revisión">En revisión</option><option value="preparando">Preparando</option><option value="enviado">Enviado</option><option value="entregado">Entregado</option><option value="resuelta">Resuelta</option><option value="descartada">Descartada</option><option value="cancelado">Cancelado</option></select>}@else{<span class="cell">{{format(row[column])}}</span>}</td>}<td class="actions">@if(resource==='publicaciones'){<button class="edit" (click)="visibility(row)">{{row.tipo==='public'?'Ocultar':'Publicar'}}</button>}@if(resource==='eventos'){<button class="edit" (click)="loadParticipants(row)">Participantes</button>}@if(resource==='usuarios'||config.fields.length){<button class="edit" (click)="edit(row)">Editar</button>}@if(resource!=='pedidos'){<button class="delete" (click)="remove(row)">Eliminar</button>}</td></tr>}
-        @empty{<tr><td class="empty" [attr.colspan]="config.columns.length+1">{{busy()?'Cargando…':'No hay registros para mostrar.'}}</td></tr>}
-      </tbody></table></div>@if(hasMore()){<button class="refresh" (click)="loadMore()" [disabled]="busy()">Cargar más</button>}<div class="count">{{rows().length}} {{config.singular}}{{rows().length===1?'':'es'}}</div>
-      @if(selectedEvent()){<div class="modal-backdrop" (click)="selectedEvent.set(null)"><section class="form-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()"><header><div><span class="kicker">PARTICIPANTES</span><h2>{{selectedEvent().nombre}}</h2><p>Revisa las solicitudes para este evento.</p></div><button type="button" class="modal-close" aria-label="Cerrar" (click)="selectedEvent.set(null)">×</button></header>@for(person of participants();track person.id){<div class="participant"><img class="thumb" [src]="image(person.imagen)" [alt]="person.usuario"><span>{{person.usuario}} · {{person.estado}}</span>@if(person.estado==='aceptado'){<button type="button" class="delete" (click)="decideParticipant(person,'rechazado')">Eliminar participante</button>}@else if(person.estado==='pendiente'){<button type="button" class="edit" (click)="decideParticipant(person,'aceptado')">Aceptar</button><button type="button" class="delete" (click)="decideParticipant(person,'rechazado')">Rechazar</button>}@else{<button type="button" class="edit" (click)="decideParticipant(person,'aceptado')">Aceptar solicitud</button>}</div>}@empty{<p>No hay solicitudes.</p>}</section></div>}
-      @if(formOpen()){<div class="modal-backdrop" (click)="closeForm()"><section class="form-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()"><header><div><span class="kicker">{{editingRow()?'EDICIÓN':'NUEVO REGISTRO'}}</span><h2>{{editingRow()?'Editar':'Crear'}} {{config.singular}}</h2><p>Completa los datos del registro.</p></div><button type="button" class="modal-close" aria-label="Cerrar" (click)="closeForm()">×</button></header>
-        <form (ngSubmit)="saveForm()"><div class="fields">@for(field of modalFields();track field.key){<label>{{field.label}}
-          @if(field.key==='id_tipo'&&resource==='usuarios'){<select [name]="field.key" [ngModel]="draft()[field.key]" (ngModelChange)="setDraft(field.key,$event)" required><option [ngValue]="1">Administrador</option><option [ngValue]="3">Organizador de eventos</option><option [ngValue]="5">Artista</option><option [ngValue]="7">Visitante</option></select>}
-          @else if(field.key==='id_tipo'&&resource==='productos'){<select [name]="field.key" [ngModel]="draft()[field.key]" (ngModelChange)="setDraft(field.key,$event)" required><option [ngValue]="1">Pieza física</option><option [ngValue]="2">Descarga digital</option></select>}
-          @else if(field.key==='estado'&&resource==='pedidos'){<select [name]="field.key" [ngModel]="draft()[field.key]" (ngModelChange)="setDraft(field.key,$event)" required><option value="preparando">Preparando</option><option value="enviado">Enviado</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select>}
-          @else if(field.key==='id_categoria'){<select [name]="field.key" [ngModel]="draft()[field.key]" (ngModelChange)="setDraft(field.key,$event)" required><option [ngValue]="null">Selecciona categoría</option>@for(category of categories();track category.id){<option [ngValue]="category.id">{{category.nombre}}</option>}</select>}
-          @else{<input [type]="field.type||'text'" [name]="field.key" [ngModel]="draft()[field.key]" (ngModelChange)="setDraft(field.key,$event)" [required]="field.required??false" [step]="field.type==='number'?'any':null">}
-        </label>}@if(config.upload){<label class="file-field">{{editingRow()?'Cambiar imagen (opcional)':'Imagen de portada'}}<input type="file" accept="image/*" [required]="!editingRow()&&resource==='productos'" (change)="chooseFile($event)"></label>}@if(resource==='productos'&&draft()['id_tipo']===2){<label class="file-field">Archivo descargable<input type="file" [required]="!editingRow()" (change)="chooseDigitalFile($event)"></label>}</div>
-        @if(imagePreview()){<img class="image-preview" [src]="imagePreview()" alt="Vista previa">}@if(formError()){<p class="form-error" role="alert">{{formError()}}</p>}
-        <footer><button type="button" class="cancel" (click)="closeForm()">Cancelar</button><button class="save-button" [disabled]="busy()">{{busy()?'Guardando…':(editingRow()?'Guardar cambios':'Crear registro')}}</button></footer></form></section></div>}
-      @if(confirmation()){<app-confirm-modal [open]="true" title="Eliminar registro" [message]="confirmation()!.message" confirmLabel="Eliminar" tone="danger" (cancel)="dismissConfirmation()" (confirm)="confirmRemoval()"/>}
+    <section class="resource">
+      <a routerLink="/admin" class="back">← Panel de control</a>
+      <div class="head">
+        <div>
+          <span class="kicker">GESTIÓN ARTISTAPP</span>
+          <h1>{{ config.title }}.</h1>
+          <p>{{ config.subtitle }}</p>
+        </div>
+        <div class="head-actions">
+          @if (config.fields.length) {
+            <button class="create-button" (click)="openCreate()">
+              Crear {{ config.singular }}
+            </button>
+          }
+          <button class="refresh" (click)="load()">Actualizar</button>
+        </div>
+      </div>
+      @if (message()) {
+        <div class="message">{{ message() }}</div>
+      }
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              @for (column of config.columns; track column) {
+                <th>{{ labels[column] || column }}</th>
+              }
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.id) {
+              <tr>
+                @for (column of config.columns; track column) {
+                  <td>
+                    @if (column === 'imagen') {
+                      <img
+                        class="thumb"
+                        [src]="image(row[column])"
+                        (error)="imageError($event)"
+                        alt=""
+                      />
+                    } @else if (
+                      column === 'estado' && (resource === 'pedidos' || resource === 'informes')
+                    ) {
+                      <select [value]="row[column]" (change)="status(row, readValue($event))">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en revisión">En revisión</option>
+                        <option value="preparando">Preparando</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="resuelta">Resuelta</option>
+                        <option value="descartada">Descartada</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
+                    } @else {
+                      <span class="cell">{{ format(row[column]) }}</span>
+                    }
+                  </td>
+                }
+                <td class="actions">
+                  @if (resource === 'publicaciones') {
+                    <button class="edit" (click)="visibility(row)">
+                      {{ row.tipo === 'public' ? 'Ocultar' : 'Publicar' }}
+                    </button>
+                  }
+                  @if (resource === 'eventos') {
+                    <button class="edit" (click)="loadParticipants(row)">Participantes</button>
+                  }
+                  @if (resource === 'usuarios' || config.fields.length) {
+                    <button class="edit" (click)="edit(row)">Editar</button>
+                  }
+                  @if (resource !== 'pedidos') {
+                    <button class="delete" (click)="remove(row)">Eliminar</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty" [attr.colspan]="config.columns.length + 1">
+                  {{ busy() ? 'Cargando…' : 'No hay registros para mostrar.' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (hasMore()) {
+        <button class="refresh" (click)="loadMore()" [disabled]="busy()">Cargar más</button>
+      }
+      <div class="count">
+        {{ rows().length }} {{ config.singular }}{{ rows().length === 1 ? '' : 'es' }}
+      </div>
+      @if (selectedEvent()) {
+        <div class="modal-backdrop" (click)="selectedEvent.set(null)">
+          <section
+            class="form-modal"
+            role="dialog"
+            aria-modal="true"
+            (click)="$event.stopPropagation()"
+          >
+            <header>
+              <div>
+                <span class="kicker">PARTICIPANTES</span>
+                <h2>{{ selectedEvent().nombre }}</h2>
+                <p>Revisa las solicitudes para este evento.</p>
+              </div>
+              <button
+                type="button"
+                class="modal-close"
+                aria-label="Cerrar"
+                (click)="selectedEvent.set(null)"
+              >
+                ×
+              </button>
+            </header>
+            @for (person of participants(); track person.id) {
+              <div class="participant">
+                <img class="thumb" [src]="image(person.imagen)" [alt]="person.usuario" /><span
+                  >{{ person.usuario }} · {{ person.estado }}</span
+                >
+                @if (person.estado === 'aceptado') {
+                  <button
+                    type="button"
+                    class="delete"
+                    (click)="decideParticipant(person, 'rechazado')"
+                  >
+                    Eliminar participante
+                  </button>
+                } @else if (person.estado === 'pendiente') {
+                  <button
+                    type="button"
+                    class="edit"
+                    (click)="decideParticipant(person, 'aceptado')"
+                  >
+                    Aceptar</button
+                  ><button
+                    type="button"
+                    class="delete"
+                    (click)="decideParticipant(person, 'rechazado')"
+                  >
+                    Rechazar
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="edit"
+                    (click)="decideParticipant(person, 'aceptado')"
+                  >
+                    Aceptar solicitud
+                  </button>
+                }
+              </div>
+            } @empty {
+              <p>No hay solicitudes.</p>
+            }
+          </section>
+        </div>
+      }
+      @if (formOpen()) {
+        <div class="modal-backdrop" (click)="closeForm()">
+          <section
+            class="form-modal"
+            role="dialog"
+            aria-modal="true"
+            (click)="$event.stopPropagation()"
+          >
+            <header>
+              <div>
+                <span class="kicker">{{ editingRow() ? 'EDICIÓN' : 'NUEVO REGISTRO' }}</span>
+                <h2>{{ editingRow() ? 'Editar' : 'Crear' }} {{ config.singular }}</h2>
+                <p>Completa los datos del registro.</p>
+              </div>
+              <button type="button" class="modal-close" aria-label="Cerrar" (click)="closeForm()">
+                ×
+              </button>
+            </header>
+            <form (ngSubmit)="saveForm()">
+              <div class="fields">
+                @for (field of modalFields(); track field.key) {
+                  <label
+                    >{{ field.label }}
+                    @if (field.key === 'id_tipo' && resource === 'usuarios') {
+                      <select
+                        [name]="field.key"
+                        [ngModel]="draft()[field.key]"
+                        (ngModelChange)="setDraft(field.key, $event)"
+                        required
+                      >
+                        <option [ngValue]="1">Administrador</option>
+                        <option [ngValue]="3">Organizador de eventos</option>
+                        <option [ngValue]="5">Artista</option>
+                        <option [ngValue]="7">Visitante</option>
+                      </select>
+                    } @else if (field.key === 'id_tipo' && resource === 'productos') {
+                      <select
+                        [name]="field.key"
+                        [ngModel]="draft()[field.key]"
+                        (ngModelChange)="setDraft(field.key, $event)"
+                        required
+                      >
+                        <option [ngValue]="1">Pieza física</option>
+                        <option [ngValue]="2">Descarga digital</option>
+                      </select>
+                    } @else if (field.key === 'estado' && resource === 'pedidos') {
+                      <select
+                        [name]="field.key"
+                        [ngModel]="draft()[field.key]"
+                        (ngModelChange)="setDraft(field.key, $event)"
+                        required
+                      >
+                        <option value="preparando">Preparando</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
+                    } @else if (field.key === 'id_categoria') {
+                      <select
+                        [name]="field.key"
+                        [ngModel]="draft()[field.key]"
+                        (ngModelChange)="setDraft(field.key, $event)"
+                        required
+                      >
+                        <option [ngValue]="null">Selecciona categoría</option>
+                        @for (category of categories(); track category.id) {
+                          <option [ngValue]="category.id">{{ category.nombre }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <input
+                        [type]="field.type || 'text'"
+                        [name]="field.key"
+                        [ngModel]="draft()[field.key]"
+                        (ngModelChange)="setDraft(field.key, $event)"
+                        [required]="field.required ?? false"
+                        [step]="field.type === 'number' ? 'any' : null"
+                      />
+                    }
+                  </label>
+                }
+                @if (config.upload) {
+                  <label class="file-field"
+                    >{{ editingRow() ? 'Cambiar imagen (opcional)' : 'Imagen de portada'
+                    }}<input
+                      type="file"
+                      accept="image/*"
+                      [required]="!editingRow() && resource === 'productos'"
+                      (change)="chooseFile($event)"
+                  /></label>
+                }
+                @if (resource === 'productos' && draft()['id_tipo'] === 2) {
+                  <label class="file-field"
+                    >Archivo descargable<input
+                      type="file"
+                      [required]="!editingRow()"
+                      (change)="chooseDigitalFile($event)"
+                  /></label>
+                }
+              </div>
+              @if (imagePreview()) {
+                <img class="image-preview" [src]="imagePreview()" alt="Vista previa" />
+              }
+              @if (formError()) {
+                <p class="form-error" role="alert">{{ formError() }}</p>
+              }
+              <footer>
+                <button type="button" class="cancel" (click)="closeForm()">Cancelar</button
+                ><button class="save-button" [disabled]="busy()">
+                  {{ busy() ? 'Guardando…' : editingRow() ? 'Guardar cambios' : 'Crear registro' }}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      }
+      @if (confirmation()) {
+        <app-confirm-modal
+          [open]="true"
+          title="Eliminar registro"
+          [message]="confirmation()!.message"
+          confirmLabel="Eliminar"
+          tone="danger"
+          (cancel)="dismissConfirmation()"
+          (confirm)="confirmRemoval()"
+        />
+      }
     </section>
   `,
-  styles: [`:host{display:block;color:#272432}.resource{max-width:1200px;margin:auto;padding:42px 25px 90px}.back{font-size:11px;color:#77727e;text-decoration:none;font-weight:700}.head{display:flex;align-items:end;justify-content:space-between;margin:24px 0}.kicker{font-size:9px;letter-spacing:.15em;font-weight:850;color:#7045d4}.head h1{font-size:clamp(38px,5vw,58px);letter-spacing:-.07em;margin:8px 0}.head p{font-size:12px;color:#77727e;margin:0}.head-actions{display:flex;gap:8px}.refresh,.edit,.delete,.create-button{border:0;border-radius:99px;padding:10px 14px;font-size:11px;font-weight:750;cursor:pointer}.refresh{background:#29253a;color:white}.create-button,.save-button{background:#7045d4;color:#fff}.message{padding:12px 14px;background:#eef5de;color:#485b24;border-radius:10px;margin:12px 0;font-size:11px}.table-wrap{overflow:auto;border:1px solid #ece5de;border-radius:14px;background:#fffdf9}table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}th{padding:12px;background:#f0ecf8;color:#5b5271;font-size:9px;letter-spacing:.1em;text-transform:uppercase}td{padding:10px 12px;border-top:1px solid #f0ece6;font-size:10px;max-width:270px}.cell{display:block;overflow:hidden;text-overflow:ellipsis;max-width:250px}.thumb{width:42px;height:42px;object-fit:cover;border-radius:8px;background:#eee8e1}.actions{display:flex;gap:5px}.edit{background:#eee9fb;color:#563a9a}.delete{background:#fbe5e2;color:#9b463d}.empty{text-align:center;padding:36px!important;color:#77727e}.count{text-align:right;padding:12px;color:#77727e;font-size:10px}.modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:#211c2cb8;backdrop-filter:blur(6px)}.form-modal{position:relative;width:min(680px,100%);max-height:88dvh;overflow:auto;padding:26px;border-radius:22px;background:#fffdf9;box-shadow:0 30px 100px #15121d55}.form-modal>header{display:flex;justify-content:space-between;gap:20px;margin-bottom:22px}.form-modal h2{font-size:30px;letter-spacing:-.06em;margin:7px 0}.form-modal header p{margin:0;color:#77727e;font-size:12px}.modal-close{width:38px;height:38px;border:1px solid #e9e2da;border-radius:50%;background:white;font-size:24px;cursor:pointer}.form-modal form{display:grid;gap:14px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.form-modal label{display:grid;gap:7px;font-size:11px;font-weight:750;color:#514c59}.form-modal input,.form-modal select{width:100%;min-height:44px;padding:10px 12px;border:1px solid #e5dfd7;border-radius:10px;background:white;font:13px system-ui;color:#272432}.file-field{grid-column:1/-1}.image-preview{max-width:100%;max-height:250px;object-fit:contain;border:1px solid #ece5de;border-radius:12px;background:#f3f0eb}.form-modal footer{display:flex;justify-content:flex-end;gap:9px;margin-top:10px;padding-top:16px;border-top:1px solid #eee8e1}.form-modal footer button{min-height:42px;padding:0 17px;border:0;border-radius:999px;font-size:11px;font-weight:750;cursor:pointer}.cancel{background:#f0ece6;color:#514c59}.form-error{padding:11px;border-radius:10px;background:#fbe5e2;color:#8b3c32;font-size:12px}@media(max-width:760px){.resource{padding:32px 17px 60px}.head{align-items:flex-start;gap:12px}.head-actions{margin-top:22px;flex-wrap:wrap}.fields{grid-template-columns:1fr}}`]
+  styles: [
+    `
+      :host {
+        display: block;
+        color: #272432;
+      }
+      .resource {
+        max-width: 1200px;
+        margin: auto;
+        padding: 42px 25px 90px;
+      }
+      .back {
+        font-size: 11px;
+        color: #77727e;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin: 24px 0;
+      }
+      .kicker {
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        font-weight: 850;
+        color: #7045d4;
+      }
+      .head h1 {
+        font-size: clamp(38px, 5vw, 58px);
+        letter-spacing: -0.07em;
+        margin: 8px 0;
+      }
+      .head p {
+        font-size: 12px;
+        color: #77727e;
+        margin: 0;
+      }
+      .head-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .refresh,
+      .edit,
+      .delete,
+      .create-button {
+        border: 0;
+        border-radius: 99px;
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .refresh {
+        background: #29253a;
+        color: white;
+      }
+      .create-button,
+      .save-button {
+        background: #7045d4;
+        color: #fff;
+      }
+      .message {
+        padding: 12px 14px;
+        background: #eef5de;
+        color: #485b24;
+        border-radius: 10px;
+        margin: 12px 0;
+        font-size: 11px;
+      }
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid #ece5de;
+        border-radius: 14px;
+        background: #fffdf9;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        white-space: nowrap;
+      }
+      th {
+        padding: 12px;
+        background: #f0ecf8;
+        color: #5b5271;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      td {
+        padding: 10px 12px;
+        border-top: 1px solid #f0ece6;
+        font-size: 10px;
+        max-width: 270px;
+      }
+      .cell {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 250px;
+      }
+      .thumb {
+        width: 42px;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #eee8e1;
+      }
+      .actions {
+        display: flex;
+        gap: 5px;
+      }
+      .edit {
+        background: #eee9fb;
+        color: #563a9a;
+      }
+      .delete {
+        background: #fbe5e2;
+        color: #9b463d;
+      }
+      .empty {
+        text-align: center;
+        padding: 36px !important;
+        color: #77727e;
+      }
+      .count {
+        text-align: right;
+        padding: 12px;
+        color: #77727e;
+        font-size: 10px;
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: #211c2cb8;
+        backdrop-filter: blur(6px);
+      }
+      .form-modal {
+        position: relative;
+        width: min(680px, 100%);
+        max-height: 88dvh;
+        overflow: auto;
+        padding: 26px;
+        border-radius: 22px;
+        background: #fffdf9;
+        box-shadow: 0 30px 100px #15121d55;
+      }
+      .form-modal > header {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+      .form-modal h2 {
+        font-size: 30px;
+        letter-spacing: -0.06em;
+        margin: 7px 0;
+      }
+      .form-modal header p {
+        margin: 0;
+        color: #77727e;
+        font-size: 12px;
+      }
+      .modal-close {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #e9e2da;
+        border-radius: 50%;
+        background: white;
+        font-size: 24px;
+        cursor: pointer;
+      }
+      .form-modal form {
+        display: grid;
+        gap: 14px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+      }
+      .form-modal label {
+        display: grid;
+        gap: 7px;
+        font-size: 11px;
+        font-weight: 750;
+        color: #514c59;
+      }
+      .form-modal input,
+      .form-modal select {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #e5dfd7;
+        border-radius: 10px;
+        background: white;
+        font: 13px system-ui;
+        color: #272432;
+      }
+      .file-field {
+        grid-column: 1/-1;
+      }
+      .image-preview {
+        max-width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+        border: 1px solid #ece5de;
+        border-radius: 12px;
+        background: #f3f0eb;
+      }
+      .form-modal footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+        margin-top: 10px;
+        padding-top: 16px;
+        border-top: 1px solid #eee8e1;
+      }
+      .form-modal footer button {
+        min-height: 42px;
+        padding: 0 17px;
+        border: 0;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .cancel {
+        background: #f0ece6;
+        color: #514c59;
+      }
+      .form-error {
+        padding: 11px;
+        border-radius: 10px;
+        background: #fbe5e2;
+        color: #8b3c32;
+        font-size: 12px;
+      }
+      @media (max-width: 760px) {
+        .resource {
+          padding: 32px 17px 60px;
+        }
+        .head {
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .head-actions {
+          margin-top: 22px;
+          flex-wrap: wrap;
+        }
+        .fields {
+          grid-template-columns: 1fr;
+        }
+      }
+    `,
+  ],
 })
 export class AdminResource {
-  private readonly api=inject(Api); private readonly route=inject(ActivatedRoute);
-  resource=''; readonly rows=signal<any[]>([]); readonly busy=signal(false); readonly message=signal('');readonly confirmation=signal<{message:string}|null>(null);private pendingAction:(()=>void)|null=null;
-  readonly formOpen=signal(false); readonly editingRow=signal<any|null>(null); readonly draft=signal<Record<string,any>>({}); readonly formError=signal(''); readonly categories=signal<{id:number;nombre:string}[]>([]); readonly filePreview=signal<string|null>(null);readonly selectedEvent=signal<any|null>(null);readonly participants=signal<any[]>([]);readonly hasMore=signal(false);private page=1;
-  file:File|null=null; digitalFile:File|null=null; config:any={};
-  readonly labels:Record<string,string>={id:'ID',usuario:'Usuario',nombre:'Nombre',correo:'Correo',id_tipo:'Tipo',imagen:'Imagen',biografia:'Biografía',titulo:'Título',descripcion:'Descripción',megusta:'Me gusta',artist_name:'Artista',ubicacion:'Ubicación',fecha_inicio:'Inicio',fecha_fin:'Fin',precio:'Precio',cantidad:'Stock',estado:'Estado',pago:'Importe',direccion:'Dirección',aviso:'Aviso',informe:'Informe',usuario_referenciado:'Perfil reportado'};
-  private readonly configs:Record<string,any>={
-    usuarios:{title:'Personas',singular:'perfil',subtitle:'Perfiles y permisos de la comunidad.',endpoint:'/admin/users',columns:['id','usuario','correo','id_tipo','imagen'],fields:[{key:'nombre',label:'Nombre',required:true},{key:'apellidos',label:'Apellidos',required:true},{key:'usuario',label:'Usuario',required:true},{key:'correo',label:'Correo',type:'email',required:true},{key:'id_tipo',label:'Tipo de cuenta',required:true},{key:'biografia',label:'Biografía'},{key:'password',label:'Nueva contraseña',type:'password',required:true},{key:'password_confirmation',label:'Confirmar contraseña',type:'password',required:true}],upload:true},
-    publicaciones:{title:'Publicaciones',singular:'obra',subtitle:'Obras compartidas en la comunidad.',endpoint:'/publications',columns:['id','titulo','artist_name','megusta','imagen'],fields:[{key:'titulo',label:'Título',required:true},{key:'descripcion',label:'Descripción',required:true},{key:'id_categoria',label:'Categoría',required:true}],upload:true},
-    productos:{title:'Tienda',singular:'producto',subtitle:'Piezas originales, stock y catálogo.',endpoint:'/products',columns:['id','nombre','artist_name','precio','cantidad','imagen'],fields:[{key:'nombre',label:'Nombre',required:true},{key:'descripcion',label:'Descripción',required:true},{key:'precio',label:'Precio',type:'number',required:true},{key:'cantidad',label:'Stock',type:'number',required:true},{key:'id_tipo',label:'Formato',required:true}],upload:true},
-    eventos:{title:'Eventos',singular:'evento',subtitle:'Ferias, encuentros y participantes.',endpoint:'/events',columns:['id','nombre','ubicacion','fecha_inicio','fecha_fin','imagen'],fields:[{key:'nombre',label:'Nombre',required:true},{key:'ubicacion',label:'Ubicación',required:true},{key:'link',label:'Enlace',type:'url'},{key:'fecha_inicio',label:'Fecha de inicio',type:'date',required:true},{key:'fecha_fin',label:'Fecha de fin',type:'date',required:true}],upload:true},
-    avisos:{title:'Avisos',singular:'aviso',subtitle:'Novedades compartidas por la comunidad.',endpoint:'/notices',columns:['id','titulo','artist_name','aviso'],fields:[{key:'titulo',label:'Título',required:true},{key:'aviso',label:'Mensaje',required:true}]},
-    categorias:{title:'Categorías',singular:'categoría',subtitle:'Etiquetas para encontrar las obras.',endpoint:'/categories',columns:['id','nombre'],fields:[{key:'nombre',label:'Nombre',required:true}]},
-    pedidos:{title:'Pedidos',singular:'pedido',subtitle:'Ventas y estado de entrega.',endpoint:'/orders',columns:['id','buyer_name','nombre','estado','pago','direccion','telefono'],fields:[{key:'nombre',label:'Nombre de envío',required:true},{key:'direccion',label:'Dirección',required:true},{key:'telefono',label:'Teléfono',required:true}]},
-    informes:{title:'Informes',singular:'informe',subtitle:'Incidencias que necesitan revisión.',endpoint:'/reports',columns:['id','reportante','usuario_referenciado','informe','estado'],fields:[]}
+  private readonly api = inject(Api);
+  private readonly route = inject(ActivatedRoute);
+  resource = '';
+  readonly rows = signal<any[]>([]);
+  readonly busy = signal(false);
+  readonly message = signal('');
+  readonly confirmation = signal<{ message: string } | null>(null);
+  private pendingAction: (() => void) | null = null;
+  readonly formOpen = signal(false);
+  readonly editingRow = signal<any | null>(null);
+  readonly draft = signal<Record<string, any>>({});
+  readonly formError = signal('');
+  readonly categories = signal<{ id: number; nombre: string }[]>([]);
+  readonly filePreview = signal<string | null>(null);
+  readonly selectedEvent = signal<any | null>(null);
+  readonly participants = signal<any[]>([]);
+  readonly hasMore = signal(false);
+  private page = 1;
+  file: File | null = null;
+  digitalFile: File | null = null;
+  config: any = {};
+  readonly labels: Record<string, string> = {
+    id: 'ID',
+    usuario: 'Usuario',
+    nombre: 'Nombre',
+    correo: 'Correo',
+    id_tipo: 'Tipo',
+    imagen: 'Imagen',
+    biografia: 'Biografía',
+    titulo: 'Título',
+    descripcion: 'Descripción',
+    megusta: 'Me gusta',
+    artist_name: 'Artista',
+    ubicacion: 'Ubicación',
+    fecha_inicio: 'Inicio',
+    fecha_fin: 'Fin',
+    precio: 'Precio',
+    cantidad: 'Stock',
+    estado: 'Estado',
+    pago: 'Importe',
+    direccion: 'Dirección',
+    aviso: 'Aviso',
+    informe: 'Informe',
+    usuario_referenciado: 'Perfil reportado',
   };
-  constructor(){this.route.paramMap.subscribe(params=>{this.resource=params.get('resource')??'';this.config=this.configs[this.resource]??this.configs['usuarios'];this.closeForm();this.load();this.loadCategories();});}
-  modalFields():Field[]{const fields:Field[]=this.config.fields??[];if(this.editingRow()&&this.resource==='usuarios')return fields.map(field=>field.key==='password'||field.key==='password_confirmation'?{...field,required:false}:field);return fields;}
-  private loadCategories(){this.api.get<{id:number;nombre:string}[]>('/categories').subscribe({next:items=>this.categories.set(items)});}
-  load(){this.page=1;this.fetchPage(true);}
-  loadMore(){if(!this.busy()&&this.hasMore()){this.page++;this.fetchPage(false);}}
-  private fetchPage(reset:boolean){this.busy.set(true);this.message.set('');this.api.get<any>(this.config.endpoint,{page:this.page}).subscribe({next:r=>{const incoming=Array.isArray(r)?r:(r.data??[]);this.rows.update(current=>reset?incoming:[...current,...incoming]);this.hasMore.set(!Array.isArray(r)&&(r.current_page??this.page)<(r.last_page??this.page));this.busy.set(false);},error:e=>{this.busy.set(false);this.message.set(e.error?.message??'No se pudo cargar esta sección.');}});}
-  image(path?:string){return assetUrl(path,'media/no-item.png');}
-  imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('/media/no-item.png'))img.src='/media/no-item.png';}
-  imagePreview(){return this.filePreview()??(this.editingRow()?.imagen?this.image(this.editingRow().imagen):null);}
-  chooseFile(event:Event){const old=this.filePreview();if(old?.startsWith('blob:'))URL.revokeObjectURL(old);this.file=(event.target as HTMLInputElement).files?.[0]??null;this.filePreview.set(this.file?URL.createObjectURL(this.file):null);}
-  chooseDigitalFile(event:Event){this.digitalFile=(event.target as HTMLInputElement).files?.[0]??null;}
-  openCreate(){this.editingRow.set(null);this.formError.set('');this.draft.set({});this.file=null;this.digitalFile=null;this.filePreview.set(null);this.formOpen.set(true);}
-  closeForm(){this.formOpen.set(false);this.editingRow.set(null);this.formError.set('');this.file=null;this.digitalFile=null;const old=this.filePreview();if(old?.startsWith('blob:'))URL.revokeObjectURL(old);this.filePreview.set(null);}
-  setDraft(key:string,value:any){this.draft.update(current=>({...current,[key]:value}));}
-  saveForm(){if(this.editingRow())this.saveEdit();else this.create();}
-  create(){this.busy.set(true);this.formError.set('');let body:any=this.draft();if(this.file||this.digitalFile){const form=new FormData();Object.entries(this.draft()).forEach(([key,value])=>form.append(key,String(value)));if(this.file)form.append('imagen',this.file);if(this.digitalFile)form.append('archivo_digital',this.digitalFile);body=form;}this.api.post(this.config.endpoint,body).subscribe({next:()=>{this.busy.set(false);this.message.set('Registro creado.');this.closeForm();this.load();},error:e=>{this.busy.set(false);this.formError.set(e.error?.message??'No se pudo guardar el registro.');}});}
-  edit(row:any){const keys=this.resource==='categorias'?['nombre']:this.resource==='avisos'?['titulo','aviso']:this.config.fields.map((f:Field)=>f.key);const fields=Object.fromEntries(keys.map((key:string)=>[key,key==='password'||key==='password_confirmation'?'':(row[key]??'')]));if(this.resource==='productos')fields['id_tipo']=Number(fields['id_tipo']);if(this.resource==='publicaciones')fields['id_categoria']=Number(fields['id_categoria']);this.editingRow.set(row);this.draft.set(fields);this.file=null;this.filePreview.set(null);this.formError.set('');this.formOpen.set(true);}
-  saveEdit(){const row=this.editingRow();if(!row)return;this.busy.set(true);this.formError.set('');const path=this.resource==='usuarios'?`/admin/users/${row.id}`:`${this.config.endpoint}/${row.id}`;let body:any=this.draft();if(this.file||this.digitalFile){const form=new FormData();Object.entries(this.draft()).forEach(([key,value])=>form.append(key,String(value)));if(this.file)form.append('imagen',this.file);if(this.digitalFile)form.append('archivo_digital',this.digitalFile);form.append('_method','PATCH');body=form;}const req=body instanceof FormData?this.api.post(path,body):this.api.patch(path,body);req.subscribe({next:()=>{this.busy.set(false);this.closeForm();this.message.set('Cambios guardados.');this.load();},error:e=>{this.busy.set(false);this.formError.set(e.error?.message??'No se pudo actualizar.');}});}
-  remove(row:any){this.pendingAction=()=>{const path=this.resource==='usuarios'?`/admin/users/${row.id}`:`${this.config.endpoint}/${row.id}`;this.api.delete(path).subscribe({next:()=>{this.rows.update(list=>list.filter(item=>item.id!==row.id));this.message.set('Registro eliminado.');},error:e=>this.message.set(e.error?.message??'No se pudo eliminar.')});};this.confirmation.set({message:`¿Quieres eliminar «${row.nombre??row.usuario??row.titulo??'este registro'}»?`});}
-  dismissConfirmation(){this.confirmation.set(null);this.pendingAction=null;}
-  confirmRemoval(){const action=this.pendingAction;this.dismissConfirmation();action?.();}
-  visibility(row:any){this.api.patch<{tipo:string}>(`/publications/${row.id}/visibility`,{}).subscribe({next:r=>this.rows.update(list=>list.map(item=>item.id===row.id?{...item,tipo:r.tipo}:item)),error:e=>this.message.set(e.error?.message??'No se pudo cambiar la visibilidad.')});}
-  status(row:any,value:string){const path=this.resource==='pedidos'?`/orders/${row.id}/status`:`/reports/${row.id}`;this.api.patch(path,{estado:value}).subscribe({next:()=>this.rows.update(list=>list.map(item=>item.id===row.id?{...item,estado:value}:item)),error:e=>this.message.set(e.error?.message??'No se pudo cambiar el estado.')});}
-  loadParticipants(event:any){this.selectedEvent.set(event);this.api.get<any[]>(`/events/${event.id}/participants`).subscribe({next:list=>this.participants.set(list),error:e=>this.message.set(e.error?.message??'No se pudieron cargar los participantes.')});}
-  decideParticipant(person:any,state:'aceptado'|'rechazado'){const event=this.selectedEvent();if(!event)return;this.api.patch(`/events/${event.id}/participants/${person.id}`,{estado:state}).subscribe({next:()=>this.participants.update(list=>list.map(item=>item.id===person.id?{...item,estado:state}:item)),error:e=>this.message.set(e.error?.message??'No se pudo actualizar la solicitud.')});}
-  readValue(event:Event){return (event.target as HTMLSelectElement).value;}
-  format(value:any){return value===null||value===undefined?'—':String(value);}
+  private readonly configs: Record<string, any> = {
+    usuarios: {
+      title: 'Personas',
+      singular: 'perfil',
+      subtitle: 'Perfiles y permisos de la comunidad.',
+      endpoint: '/admin/users',
+      columns: ['id', 'usuario', 'correo', 'id_tipo', 'imagen'],
+      fields: [
+        { key: 'nombre', label: 'Nombre', required: true },
+        { key: 'apellidos', label: 'Apellidos', required: true },
+        { key: 'usuario', label: 'Usuario', required: true },
+        { key: 'correo', label: 'Correo', type: 'email', required: true },
+        { key: 'id_tipo', label: 'Tipo de cuenta', required: true },
+        { key: 'biografia', label: 'Biografía' },
+        { key: 'password', label: 'Nueva contraseña', type: 'password', required: true },
+        {
+          key: 'password_confirmation',
+          label: 'Confirmar contraseña',
+          type: 'password',
+          required: true,
+        },
+      ],
+      upload: true,
+    },
+    publicaciones: {
+      title: 'Publicaciones',
+      singular: 'obra',
+      subtitle: 'Obras compartidas en la comunidad.',
+      endpoint: '/publications',
+      columns: ['id', 'titulo', 'artist_name', 'megusta', 'imagen'],
+      fields: [
+        { key: 'titulo', label: 'Título', required: true },
+        { key: 'descripcion', label: 'Descripción', required: true },
+        { key: 'id_categoria', label: 'Categoría', required: true },
+      ],
+      upload: true,
+    },
+    productos: {
+      title: 'Tienda',
+      singular: 'producto',
+      subtitle: 'Piezas originales, stock y catálogo.',
+      endpoint: '/products',
+      columns: ['id', 'nombre', 'artist_name', 'precio', 'cantidad', 'imagen'],
+      fields: [
+        { key: 'nombre', label: 'Nombre', required: true },
+        { key: 'descripcion', label: 'Descripción', required: true },
+        { key: 'precio', label: 'Precio', type: 'number', required: true },
+        { key: 'cantidad', label: 'Stock', type: 'number', required: true },
+        { key: 'id_tipo', label: 'Formato', required: true },
+      ],
+      upload: true,
+    },
+    eventos: {
+      title: 'Eventos',
+      singular: 'evento',
+      subtitle: 'Ferias, encuentros y participantes.',
+      endpoint: '/events',
+      columns: ['id', 'nombre', 'ubicacion', 'fecha_inicio', 'fecha_fin', 'imagen'],
+      fields: [
+        { key: 'nombre', label: 'Nombre', required: true },
+        { key: 'ubicacion', label: 'Ubicación', required: true },
+        { key: 'link', label: 'Enlace', type: 'url' },
+        { key: 'fecha_inicio', label: 'Fecha de inicio', type: 'date', required: true },
+        { key: 'fecha_fin', label: 'Fecha de fin', type: 'date', required: true },
+      ],
+      upload: true,
+    },
+    avisos: {
+      title: 'Avisos',
+      singular: 'aviso',
+      subtitle: 'Novedades compartidas por la comunidad.',
+      endpoint: '/notices',
+      columns: ['id', 'titulo', 'artist_name', 'aviso'],
+      fields: [
+        { key: 'titulo', label: 'Título', required: true },
+        { key: 'aviso', label: 'Mensaje', required: true },
+      ],
+    },
+    categorias: {
+      title: 'Categorías',
+      singular: 'categoría',
+      subtitle: 'Etiquetas para encontrar las obras.',
+      endpoint: '/categories',
+      columns: ['id', 'nombre'],
+      fields: [{ key: 'nombre', label: 'Nombre', required: true }],
+    },
+    pedidos: {
+      title: 'Pedidos',
+      singular: 'pedido',
+      subtitle: 'Ventas y estado de entrega.',
+      endpoint: '/orders',
+      columns: ['id', 'buyer_name', 'nombre', 'estado', 'pago', 'direccion', 'telefono'],
+      fields: [
+        { key: 'nombre', label: 'Nombre de envío', required: true },
+        { key: 'direccion', label: 'Dirección', required: true },
+        { key: 'telefono', label: 'Teléfono', required: true },
+      ],
+    },
+    informes: {
+      title: 'Informes',
+      singular: 'informe',
+      subtitle: 'Incidencias que necesitan revisión.',
+      endpoint: '/reports',
+      columns: ['id', 'reportante', 'usuario_referenciado', 'informe', 'estado'],
+      fields: [],
+    },
+  };
+  constructor() {
+    this.route.paramMap.subscribe((params) => {
+      this.resource = params.get('resource') ?? '';
+      this.config = this.configs[this.resource] ?? this.configs['usuarios'];
+      this.closeForm();
+      this.load();
+      this.loadCategories();
+    });
+  }
+  modalFields(): Field[] {
+    const fields: Field[] = this.config.fields ?? [];
+    if (this.editingRow() && this.resource === 'usuarios')
+      return fields.map((field) =>
+        field.key === 'password' || field.key === 'password_confirmation'
+          ? { ...field, required: false }
+          : field,
+      );
+    return fields;
+  }
+  private loadCategories() {
+    this.api
+      .get<{ id: number; nombre: string }[]>('/categories')
+      .subscribe({ next: (items) => this.categories.set(items) });
+  }
+  load() {
+    this.page = 1;
+    this.fetchPage(true);
+  }
+  loadMore() {
+    if (!this.busy() && this.hasMore()) {
+      this.page++;
+      this.fetchPage(false);
+    }
+  }
+  private fetchPage(reset: boolean) {
+    this.busy.set(true);
+    this.message.set('');
+    this.api.get<any>(this.config.endpoint, { page: this.page }).subscribe({
+      next: (r) => {
+        const incoming = Array.isArray(r) ? r : (r.data ?? []);
+        this.rows.update((current) => (reset ? incoming : [...current, ...incoming]));
+        this.hasMore.set(
+          !Array.isArray(r) && (r.current_page ?? this.page) < (r.last_page ?? this.page),
+        );
+        this.busy.set(false);
+      },
+      error: (e) => {
+        this.busy.set(false);
+        this.message.set(e.error?.message ?? 'No se pudo cargar esta sección.');
+      },
+    });
+  }
+  image(path?: string) {
+    return assetUrl(path, 'media/no-item.png');
+  }
+  imageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    if (!img.src.endsWith('/media/no-item.png')) img.src = '/media/no-item.png';
+  }
+  imagePreview() {
+    return (
+      this.filePreview() ??
+      (this.editingRow()?.imagen ? this.image(this.editingRow().imagen) : null)
+    );
+  }
+  chooseFile(event: Event) {
+    const old = this.filePreview();
+    if (old?.startsWith('blob:')) URL.revokeObjectURL(old);
+    this.file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    this.filePreview.set(this.file ? URL.createObjectURL(this.file) : null);
+  }
+  chooseDigitalFile(event: Event) {
+    this.digitalFile = (event.target as HTMLInputElement).files?.[0] ?? null;
+  }
+  openCreate() {
+    this.editingRow.set(null);
+    this.formError.set('');
+    this.draft.set({});
+    this.file = null;
+    this.digitalFile = null;
+    this.filePreview.set(null);
+    this.formOpen.set(true);
+  }
+  closeForm() {
+    this.formOpen.set(false);
+    this.editingRow.set(null);
+    this.formError.set('');
+    this.file = null;
+    this.digitalFile = null;
+    const old = this.filePreview();
+    if (old?.startsWith('blob:')) URL.revokeObjectURL(old);
+    this.filePreview.set(null);
+  }
+  setDraft(key: string, value: any) {
+    this.draft.update((current) => ({ ...current, [key]: value }));
+  }
+  saveForm() {
+    if (this.editingRow()) this.saveEdit();
+    else this.create();
+  }
+  create() {
+    this.busy.set(true);
+    this.formError.set('');
+    let body: any = this.draft();
+    if (this.file || this.digitalFile) {
+      const form = new FormData();
+      Object.entries(this.draft()).forEach(([key, value]) => form.append(key, String(value)));
+      if (this.file) form.append('imagen', this.file);
+      if (this.digitalFile) form.append('archivo_digital', this.digitalFile);
+      body = form;
+    }
+    this.api.post(this.config.endpoint, body).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.message.set('Registro creado.');
+        this.closeForm();
+        this.load();
+      },
+      error: (e) => {
+        this.busy.set(false);
+        this.formError.set(e.error?.message ?? 'No se pudo guardar el registro.');
+      },
+    });
+  }
+  edit(row: any) {
+    const keys =
+      this.resource === 'categorias'
+        ? ['nombre']
+        : this.resource === 'avisos'
+          ? ['titulo', 'aviso']
+          : this.config.fields.map((f: Field) => f.key);
+    const fields = Object.fromEntries(
+      keys.map((key: string) => [
+        key,
+        key === 'password' || key === 'password_confirmation' ? '' : (row[key] ?? ''),
+      ]),
+    );
+    if (this.resource === 'productos') fields['id_tipo'] = Number(fields['id_tipo']);
+    if (this.resource === 'publicaciones') fields['id_categoria'] = Number(fields['id_categoria']);
+    this.editingRow.set(row);
+    this.draft.set(fields);
+    this.file = null;
+    this.filePreview.set(null);
+    this.formError.set('');
+    this.formOpen.set(true);
+  }
+  saveEdit() {
+    const row = this.editingRow();
+    if (!row) return;
+    this.busy.set(true);
+    this.formError.set('');
+    const path =
+      this.resource === 'usuarios' ? `/admin/users/${row.id}` : `${this.config.endpoint}/${row.id}`;
+    let body: any = this.draft();
+    if (this.file || this.digitalFile) {
+      const form = new FormData();
+      Object.entries(this.draft()).forEach(([key, value]) => form.append(key, String(value)));
+      if (this.file) form.append('imagen', this.file);
+      if (this.digitalFile) form.append('archivo_digital', this.digitalFile);
+      form.append('_method', 'PATCH');
+      body = form;
+    }
+    const req = body instanceof FormData ? this.api.post(path, body) : this.api.patch(path, body);
+    req.subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.closeForm();
+        this.message.set('Cambios guardados.');
+        this.load();
+      },
+      error: (e) => {
+        this.busy.set(false);
+        this.formError.set(e.error?.message ?? 'No se pudo actualizar.');
+      },
+    });
+  }
+  remove(row: any) {
+    this.pendingAction = () => {
+      const path =
+        this.resource === 'usuarios'
+          ? `/admin/users/${row.id}`
+          : `${this.config.endpoint}/${row.id}`;
+      this.api.delete(path).subscribe({
+        next: () => {
+          this.rows.update((list) => list.filter((item) => item.id !== row.id));
+          this.message.set('Registro eliminado.');
+        },
+        error: (e) => this.message.set(e.error?.message ?? 'No se pudo eliminar.'),
+      });
+    };
+    this.confirmation.set({
+      message: `¿Quieres eliminar «${row.nombre ?? row.usuario ?? row.titulo ?? 'este registro'}»?`,
+    });
+  }
+  dismissConfirmation() {
+    this.confirmation.set(null);
+    this.pendingAction = null;
+  }
+  confirmRemoval() {
+    const action = this.pendingAction;
+    this.dismissConfirmation();
+    action?.();
+  }
+  visibility(row: any) {
+    this.api
+      .patch<{ tipo: string }>(`/publications/${row.id}/visibility`, {})
+      .subscribe({
+        next: (r) =>
+          this.rows.update((list) =>
+            list.map((item) => (item.id === row.id ? { ...item, tipo: r.tipo } : item)),
+          ),
+        error: (e) => this.message.set(e.error?.message ?? 'No se pudo cambiar la visibilidad.'),
+      });
+  }
+  status(row: any, value: string) {
+    const path = this.resource === 'pedidos' ? `/orders/${row.id}/status` : `/reports/${row.id}`;
+    this.api
+      .patch(path, { estado: value })
+      .subscribe({
+        next: () =>
+          this.rows.update((list) =>
+            list.map((item) => (item.id === row.id ? { ...item, estado: value } : item)),
+          ),
+        error: (e) => this.message.set(e.error?.message ?? 'No se pudo cambiar el estado.'),
+      });
+  }
+  loadParticipants(event: any) {
+    this.selectedEvent.set(event);
+    this.api
+      .get<any[]>(`/events/${event.id}/participants`)
+      .subscribe({
+        next: (list) => this.participants.set(list),
+        error: (e) =>
+          this.message.set(e.error?.message ?? 'No se pudieron cargar los participantes.'),
+      });
+  }
+  decideParticipant(person: any, state: 'aceptado' | 'rechazado') {
+    const event = this.selectedEvent();
+    if (!event) return;
+    this.api
+      .patch(`/events/${event.id}/participants/${person.id}`, { estado: state })
+      .subscribe({
+        next: () =>
+          this.participants.update((list) =>
+            list.map((item) => (item.id === person.id ? { ...item, estado: state } : item)),
+          ),
+        error: (e) => this.message.set(e.error?.message ?? 'No se pudo actualizar la solicitud.'),
+      });
+  }
+  readValue(event: Event) {
+    return (event.target as HTMLSelectElement).value;
+  }
+  format(value: any) {
+    return value === null || value === undefined ? '—' : String(value);
+  }
 }

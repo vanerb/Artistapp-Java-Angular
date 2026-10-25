@@ -82,9 +82,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('cart',[CartController::class,'clear']);
     Route::post('checkout',[OrderController::class,'checkout']);
     Route::get('orders',[OrderController::class,'index']);
+    Route::get('orders/received',[OrderController::class,'received']);
     Route::get('orders/{id}/products/{product}/download',[OrderController::class,'download'])->whereNumber(['id','product']);
     Route::post('orders/{id}/cancel',[OrderController::class,'refund'])->whereNumber('id');
     Route::patch('orders/{id}/status',[OrderController::class,'updateStatus'])->whereNumber('id');
+    Route::patch('orders/{id}/items/{detail}/confirm-received',[OrderController::class,'confirmReceived'])->whereNumber(['id','detail']);
     Route::patch('orders/{id}',[OrderController::class,'update'])->whereNumber('id');
     Route::delete('orders/{id}',[OrderController::class,'destroy'])->whereNumber('id');
 

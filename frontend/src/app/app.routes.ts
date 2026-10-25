@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from './core/auth.guard';
+import { authGuard, adminGuard, userDashboardGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/landing').then(m => m.LandingPage), title: 'ArtistApp — arte independiente' },
@@ -12,13 +12,15 @@ export const routes: Routes = [
   { path: 'cesta', canActivate: [authGuard], loadComponent: () => import('./pages/cart-page').then(m => m.CartPage), title: 'Tu cesta · ArtistApp' },
   { path: 'checkout', canActivate: [authGuard], loadComponent: () => import('./pages/checkout-page').then(m => m.CheckoutPage), title: 'Finalizar compra · ArtistApp' },
   { path: 'perfil', canActivate: [authGuard], loadComponent: () => import('./pages/profile-page').then(m => m.ProfilePage), title: 'Mi espacio · ArtistApp' },
-  { path: 'pedidos', canActivate: [authGuard], loadComponent: () => import('./pages/orders-page').then(m => m.OrdersPage), title: 'Pedidos · ArtistApp' },
+  { path: 'pedidos', canActivate: [authGuard], loadComponent: () => import('./pages/orders-page').then(m => m.OrdersPage), title: 'Mis compras · ArtistApp' },
+  { path: 'pedidos-recibidos', canActivate: [authGuard], loadComponent: () => import('./pages/orders-page').then(m => m.OrdersPage), title: 'Pedidos recibidos · ArtistApp' },
   { path: 'avisos', canActivate: [authGuard], loadComponent: () => import('./pages/notifications-page').then(m => m.NotificationsPage), title: 'Avisos · ArtistApp' },
   { path: 'mensajes', canActivate: [authGuard], loadComponent: () => import('./pages/messages-page').then(m => m.MessagesPage), title: 'Mensajes · ArtistApp' },
   { path: 'mensajes/artista/:id', canActivate: [authGuard], loadComponent: () => import('./pages/chat-page').then(m => m.ChatPage), data: { mode: 'direct' }, title: 'Chat con artista · ArtistApp' },
   { path: 'mensajes/evento/:id', canActivate: [authGuard], loadComponent: () => import('./pages/chat-page').then(m => m.ChatPage), data: { mode: 'event' }, title: 'Chat de evento · ArtistApp' },
   { path: 'informes', canActivate: [authGuard], loadComponent: () => import('./pages/reports-page').then(m => m.ReportsPage), title: 'Informes · ArtistApp' },
   { path: 'artistas/:id', loadComponent: () => import('./pages/artist-page').then(m => m.ArtistPage), title: 'Artista · ArtistApp' },
+  { path: 'panel', canActivate: [userDashboardGuard], loadComponent: () => import('./pages/user-dashboard').then(m => m.UserDashboard), title: 'Mi panel · ArtistApp' },
   { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./pages/admin-dashboard').then(m => m.AdminDashboard), title: 'Administración · ArtistApp' },
   { path: 'admin/:resource', canActivate: [adminGuard], loadComponent: () => import('./pages/admin-resource').then(m => m.AdminResource), title: 'Gestionar · ArtistApp' },
   { path: '**', redirectTo: '' }
