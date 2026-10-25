@@ -102,15 +102,6 @@ import { NotificationState } from '../core/notification-state';
                 </button>
                 @if (accountOpen()) {
                   <div class="account-dropdown" role="menu">
-                    @if (!auth.isAdmin()) {
-                      <a
-                        role="menuitem"
-                        routerLink="/panel"
-                        routerLinkActive="active"
-                        (click)="closeAll()"
-                        ><span>▦</span> Mi panel</a
-                      >
-                    }
                     <a
                       role="menuitem"
                       routerLink="/perfil"
@@ -146,6 +137,17 @@ import { NotificationState } from '../core/notification-state';
                       (click)="closeAll()"
                       ><span>⚑</span> Informes</a
                     >
+                    @if (!auth.isAdmin()) {
+                      <a
+                        class="admin-link"
+                        role="menuitem"
+                        routerLink="/panel"
+                        routerLinkActive="active"
+                        (click)="closeAll()"
+                        ><span>✳</span> Mi panel</a
+                      >
+                    }
+
                     @if (auth.isAdmin()) {
                       <a
                         class="admin-link"
