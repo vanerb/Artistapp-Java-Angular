@@ -1,9 +1,10 @@
+// Las rutas son relativas al <base href> para que la app funcione también bajo una subruta (GitHub Pages).
 export function assetUrl(path?: string, fallback = 'media/no-user.png'): string {
-  if (!path) return `/${fallback}`;
-  if (/^https?:\/\//i.test(path)) return path;
+  if (!path) return fallback;
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
   const normalized = path.replace(/^\//, '');
-  if (normalized.startsWith('uploads/')) return `/api/assets/${normalized.split('/').map(encodeURIComponent).join('/')}`;
+  if (normalized.startsWith('uploads/')) return `api/assets/${normalized.split('/').map(encodeURIComponent).join('/')}`;
   // El catálogo legado guardaba la imagen completa en img/ y mostraba su preview lowres.
-  if (normalized.startsWith('img/')) return `/imglowres/low${normalized.slice(4)}`;
-  return `/${normalized}`;
+  if (normalized.startsWith('img/')) return `imglowres/low${normalized.slice(4)}`;
+  return normalized;
 }

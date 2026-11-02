@@ -16,5 +16,5 @@ export class PublicationDetailModal implements OnChanges {
  canDelete(item:Comment){return Number(this.auth.user()?.id)===item.user_id||this.auth.isAdmin();}
  remove(item:Comment){this.api.delete(`/publications/${this.publication.id}/comments/${item.id}`).subscribe({next:()=>this.comments.update(rows=>rows.filter(row=>row.id!==item.id)),error:e=>this.error.set(e.error?.message??'No se pudo eliminar el comentario.')});}
  image(path?:string,fallback='media/no-item.png'){return assetUrl(path,fallback);}
- imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('/media/no-item.png'))img.src='/media/no-item.png';}
+ imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('media/no-item.png'))img.src='media/no-item.png';}
 }

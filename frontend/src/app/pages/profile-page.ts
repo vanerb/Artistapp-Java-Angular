@@ -2098,6 +2098,6 @@ export class ProfilePage {
   }
   imageError(event: Event) {
     const img = event.target as HTMLImageElement;
-    if (!img.src.endsWith('/media/no-user.png')) img.src = '/media/no-user.png';
+    if (!img.src.endsWith('media/no-user.png')) img.src = 'media/no-user.png';
   }
 }

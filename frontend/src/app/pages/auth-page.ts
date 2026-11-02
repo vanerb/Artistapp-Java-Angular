@@ -14,7 +14,7 @@ type AuthForm = { user:string; password:string; password_confirmation:string; no
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <section class="auth-layout">
-      <aside class="auth-art"><a class="mini-brand" routerLink="/">artistapp<span>✳</span></a><div><span class="kicker">UN LUGAR PROPIO PARA CREAR</span><h1>El arte nos<br>encuentra.</h1><p>Una comunidad abierta para compartir lo que haces y descubrir todo lo que te inspira.</p></div><img src="/carrousel/img3carrousel.jpg" alt="Arte de la comunidad ArtistApp"></aside>
+      <aside class="auth-art"><a class="mini-brand" routerLink="/">artistapp<span>✳</span></a><div><span class="kicker">UN LUGAR PROPIO PARA CREAR</span><h1>El arte nos<br>encuentra.</h1><p>Una comunidad abierta para compartir lo que haces y descubrir todo lo que te inspira.</p></div><img src="carrousel/img3carrousel.jpg" alt="Arte de la comunidad ArtistApp"></aside>
       <div class="auth-panel">
         <a routerLink="/" class="back-link">← Volver a ArtistApp</a>
         @if (mode === 'login') {

@@ -773,7 +773,7 @@ export class AdminResource {
   }
   imageError(event: Event) {
     const img = event.target as HTMLImageElement;
-    if (!img.src.endsWith('/media/no-item.png')) img.src = '/media/no-item.png';
+    if (!img.src.endsWith('media/no-item.png')) img.src = 'media/no-item.png';
   }
   imagePreview() {
     return (

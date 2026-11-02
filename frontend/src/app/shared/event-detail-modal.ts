@@ -11,5 +11,5 @@ export class EventDetailModal {
  canChat(){return !!this.event&&this.auth.isAuthenticated()&&(Number(this.auth.user()?.id)===Number(this.event.id_usuario)||this.event.participation_status==='aceptado');}
  participationLabel(status:string){return status==='aceptado'?'Participación confirmada ✓':status==='rechazado'?'Solicitud rechazada':'Solicitud enviada · Pendiente';}
  image(path?:string){return assetUrl(path,'media/no-item.png');}
- imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('/media/no-item.png'))img.src='/media/no-item.png';}
+ imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('media/no-item.png'))img.src='media/no-item.png';}
 }

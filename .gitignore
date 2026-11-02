@@ -29,23 +29,20 @@
 /frontend/libpeerconnection.log
 /frontend/connect.lock
 
-# Laravel / backend dependencies and generated files
-/backend/vendor/
-/backend/bootstrap/cache/*.php
-/backend/storage/*.key
+# Spring Boot / backend build output and uploaded files
+/backend/target/
 /backend/storage/app/private/*
 /backend/storage/app/public/*
 !/backend/storage/app/private/.gitignore
 !/backend/storage/app/public/.gitignore
-/backend/storage/framework/cache/data/*
-/backend/storage/framework/sessions/*
-/backend/storage/framework/testing/*
-/backend/storage/framework/views/*
 /backend/storage/logs/*.log
-/backend/public/storage
-/backend/.phpunit.cache/
-/backend/coverage/
-/backend/build/
+/backend/*.log
+
+# Restos locales de la antigua versión Laravel (se pueden borrar)
+/backend/vendor/
+/backend/bootstrap/
+/backend/public/
+/backend/storage/framework/
 
 # Backend local environment and secrets
 /backend/.env
@@ -66,7 +63,6 @@
 **/Thumbs.db
 **/*.swp
 **/*.swo
-**/.phpstorm.meta.php
 **/.project
 **/.classpath
 **/.c9/

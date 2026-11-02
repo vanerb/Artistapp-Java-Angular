@@ -23,5 +23,5 @@ export class ShopPage{
   selectProduct(product:Product){this.selectedProduct.set(product);}
   add(product:Product){if(!this.auth.isAuthenticated())return;this.api.post(`/cart/items/${product.id}`,{}).subscribe({next:()=>{this.cart.refresh();this.message.set(`${product.nombre} añadido a la cesta.`);},error:e=>this.message.set(e.error?.message??'No se pudo añadir este producto.')});}
   image(path:string){return assetUrl(path,'media/no-item.png');}
-  imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('/media/no-item.png'))img.src='/media/no-item.png';}
+  imageError(event:Event){const img=event.target as HTMLImageElement;if(!img.src.endsWith('media/no-item.png'))img.src='media/no-item.png';}
 }
