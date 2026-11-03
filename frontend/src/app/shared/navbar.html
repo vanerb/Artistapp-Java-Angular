@@ -1,0 +1,171 @@
+<header class="topbar">
+  <div class="bar-inner">
+    <a class="brand" routerLink="/" aria-label="ArtistApp, ir al inicio" (click)="closeMenu()">
+      <span class="brand-mark" aria-hidden="true">a</span>
+      <span class="brand-name">artist<span>app</span><b aria-hidden="true">✳</b></span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="primary-navigation"
+      [attr.aria-label]="menuOpen() ? 'Cerrar navegación' : 'Abrir navegación'"
+    >
+      <span aria-hidden="true">{{ menuOpen() ? '×' : '☰' }}</span>
+    </button>
+
+    <nav id="primary-navigation" [class.open]="menuOpen()" aria-label="Navegación principal">
+      <div class="nav-links">
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMenu()"
+          >Inicio</a
+        >
+        <a routerLink="/descubrir" routerLinkActive="active" (click)="closeMenu()">Descubrir</a>
+        <a routerLink="/tienda" routerLinkActive="active" (click)="closeMenu()">Tienda</a>
+      </div>
+
+      <div class="nav-actions">
+        @if (auth.isAuthenticated()) {
+          <a
+            class="utility-link"
+            routerLink="/mensajes"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+            aria-label="Mensajes"
+            title="Mensajes"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.2-.7L4 20l1.7-4.3A7.4 7.4 0 0 1 5 12a7.5 7.5 0 1 1 15 0Z"
+              />
+              <path d="M8.5 12h7M8.5 9h5" /></svg
+          ></a>
+          <a
+            class="utility-link"
+            routerLink="/cesta"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+            aria-label="Cesta"
+            title="Cesta"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6M10 20h.01M18 20h.01"
+              />
+            </svg>
+            @if (cart.count()) {
+              <span class="utility-badge">{{ cart.count() }}</span>
+            }
+          </a>
+          <a
+            class="utility-link"
+            routerLink="/avisos"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+            aria-label="Avisos"
+            title="Avisos"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+            </svg>
+            @if (notifications.unread()) {
+              <span class="utility-badge">{{ notifications.unread() }}</span>
+            }
+          </a>
+          <div class="account-menu" [class.expanded]="accountOpen()">
+            <button
+              class="account-trigger"
+              type="button"
+              (click)="toggleAccount()"
+              [attr.aria-expanded]="accountOpen()"
+              aria-haspopup="true"
+            >
+              <span class="avatar">{{ auth.user()?.nombre?.charAt(0) || 'A' }}</span>
+              <span class="account-label"
+                ><small>MI CUENTA</small
+                ><strong>{{ auth.user()?.nombre || 'Perfil' }}</strong></span
+              >
+              <span class="chevron" aria-hidden="true">⌄</span>
+            </button>
+            @if (accountOpen()) {
+              <div class="account-dropdown" role="menu">
+                <a
+                  role="menuitem"
+                  routerLink="/perfil"
+                  routerLinkActive="active"
+                  (click)="closeAll()"
+                  ><span>◉</span> Mi espacio</a
+                >
+                <a
+                  role="menuitem"
+                  routerLink="/mensajes"
+                  routerLinkActive="active"
+                  (click)="closeAll()"
+                  ><span>✉</span> Mensajes</a
+                >
+                <a
+                  role="menuitem"
+                  routerLink="/pedidos"
+                  routerLinkActive="active"
+                  (click)="closeAll()"
+                  ><span>↗</span> Mis pedidos</a
+                >
+                <a
+                  role="menuitem"
+                  routerLink="/cesta"
+                  routerLinkActive="active"
+                  (click)="closeAll()"
+                  ><span>◇</span> Mi cesta</a
+                >
+                <a
+                  role="menuitem"
+                  routerLink="/informes"
+                  routerLinkActive="active"
+                  (click)="closeAll()"
+                  ><span>⚑</span> Informes</a
+                >
+                @if (!auth.isAdmin()) {
+                  <a
+                    class="admin-link"
+                    role="menuitem"
+                    routerLink="/panel"
+                    routerLinkActive="active"
+                    (click)="closeAll()"
+                    ><span>✳</span> Mi panel</a
+                  >
+                }
+
+                @if (auth.isAdmin()) {
+                  <a
+                    class="admin-link"
+                    role="menuitem"
+                    routerLink="/admin"
+                    routerLinkActive="active"
+                    (click)="closeAll()"
+                    ><span>✳</span> Administración</a
+                  >
+                }
+                <button role="menuitem" type="button" class="logout-button" (click)="logout()">
+                  <span>↪</span> Cerrar sesión
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <a
+            class="login-link"
+            routerLink="/login"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+            >Entrar</a
+          >
+          <a class="join-link" routerLink="/registro" (click)="closeMenu()"
+            >Crear cuenta <span aria-hidden="true">↗</span></a
+          >
+        }
+      </div>
+    </nav>
+  </div>
+</header>

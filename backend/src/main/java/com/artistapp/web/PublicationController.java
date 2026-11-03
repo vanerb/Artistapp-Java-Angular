@@ -95,6 +95,7 @@ public class PublicationController {
         Map<String, Object> data = v.validate();
         if (data.get("imagen") instanceof MultipartFile file) {
             data.put("imagen", storage.store(file, "uploads/publicaciones", StorageService.Disk.PUBLIC));
+            storage.deleteUpload(post.get("imagen"));
         } else {
             data.remove("imagen");
         }
@@ -109,7 +110,9 @@ public class PublicationController {
         Map<String, Object> post = db.findOrFail("publicaciones", id);
         abortUnless(Users.id(post, "id_usuario") == auth.id() || auth.isAdmin(), 403);
         db.exec("DELETE FROM megusta WHERE id_publicacion = ?", id);
+        db.exec("DELETE FROM publication_comments WHERE publication_id = ?", id);
         db.exec("DELETE FROM publicaciones WHERE id = ?", id);
+        storage.deleteUpload(post.get("imagen"));
         return Map.of("message", "Publicación eliminada.");
     }
 

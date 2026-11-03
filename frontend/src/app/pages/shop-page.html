@@ -1,0 +1,153 @@
+<section class="shop-head">
+  <div>
+    <span class="kicker">ORIGINAL, HECHO A MANO, HECHO AQUÍ</span>
+    <h1>Una tienda llena<br />de <em>mundos propios.</em></h1>
+    <p>Ilustración, prints y piezas con historia. Cada compra apoya a quien la creó.</p>
+  </div>
+  @if (auth.isAuthenticated()) {
+    <a routerLink="/cesta" class="cart-link">Tu cesta <span>↗</span></a>
+  }
+</section>
+<section class="shop wrap">
+  <form class="filter" (ngSubmit)="load()">
+    <span>⌕</span
+    ><input
+      name="query"
+      [ngModel]="query()"
+      (ngModelChange)="query.set($event)"
+      placeholder="Busca una pieza, estilo o artista"
+    /><select name="price" [ngModel]="price()" (ngModelChange)="price.set($event)">
+      <option value="">Cualquier precio</option>
+      <option value="0-5">0 € – 5 €</option>
+      <option value="5-10">5 € – 10 €</option>
+      <option value="10-20">10 € – 20 €</option>
+      <option value="20-?">Más de 20 €</option></select
+    ><select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">
+      <option value="">Todo el arte</option>
+      <option value="1">Piezas físicas</option>
+      <option value="2">Descargas digitales</option></select
+    ><button>Filtrar</button>
+  </form>
+  <p class="notice" *ngIf="message()">{{ message() }}</p>
+  <div class="product-grid">
+    @for (product of products(); track product.id) {
+      <article class="product">
+        <button type="button" class="product-image" (click)="selectProduct(product)">
+          <img
+            [src]="image(product.imagen)"
+            (error)="imageError($event)"
+            [alt]="product.nombre"
+            loading="lazy"
+          /><span>{{ product.type_name || 'PIEZA ORIGINAL' }}</span>
+        </button>
+        <div class="product-info">
+          <div class="seller">POR {{ product.artist_name || 'ARTISTA' }}</div>
+          <h2>{{ product.nombre }}</h2>
+          <p>{{ product.descripcion }}</p>
+          <footer>
+            <strong>{{ product.precio | currency: 'EUR' }}</strong>
+            @if (auth.isAuthenticated()) {
+              <button (click)="add(product)">Añadir <span>＋</span></button>
+            }
+          </footer>
+        </div>
+      </article>
+    } @empty {
+      <div class="empty">
+        {{ busy() ? 'Cargando piezas…' : 'Aún no hay productos disponibles.' }}
+      </div>
+    }
+  </div>
+  @if (totalPages() > 1) {
+    <nav class="pagination" aria-label="Páginas de productos">
+      <button
+        type="button"
+        (click)="goToPage(pageNumber() - 1)"
+        [disabled]="pageNumber() <= 1 || busy()"
+      >
+        ← Anterior
+      </button>
+      @for (page of paginationItems(); track $index) {
+        @if (page === '…') {
+          <span class="page-ellipsis">…</span>
+        } @else {
+          <button
+            type="button"
+            class="page-number"
+            [class.current]="page === pageNumber()"
+            [attr.aria-current]="page === pageNumber() ? 'page' : null"
+            (click)="goToPage(page)"
+            [disabled]="busy()"
+          >
+            {{ page }}
+          </button>
+        }
+      }
+      <span class="page-status">Página {{ pageNumber() }} de {{ totalPages() }}</span
+      ><button
+        type="button"
+        (click)="goToPage(pageNumber() + 1)"
+        [disabled]="pageNumber() >= totalPages() || busy()"
+      >
+        Siguiente →
+      </button>
+    </nav>
+  }
+  @if (selectedProduct(); as product) {
+    <div class="detail-backdrop" (click)="selectedProduct.set(null)">
+      <section
+        class="detail-modal"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="product.nombre"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="detail-close"
+          aria-label="Cerrar"
+          (click)="selectedProduct.set(null)"
+        >
+          ×</button
+        ><img
+          [src]="image(product.imagen)"
+          (error)="imageError($event)"
+          [alt]="product.nombre"
+        />
+        <div class="detail-copy">
+          <span class="kicker"
+            >{{ product.type_name || 'PIEZA ORIGINAL' }} · POR {{ product.artist_name }}</span
+          >
+          <h2>{{ product.nombre }}</h2>
+          <p>{{ product.descripcion }}</p>
+          <strong class="detail-price">{{ product.precio | currency: 'EUR' }}</strong>
+          <div class="detail-facts">
+            <article>
+              <span>FORMATO</span><b>{{ product.type_name || 'Pieza original' }}</b>
+            </article>
+            <article>
+              <span>DISPONIBILIDAD</span
+              ><b>{{ product.cantidad > 0 ? 'En stock' : 'Agotado' }}</b
+              ><small>
+                @if (product.cantidad > 0) {
+                  {{ product.cantidad }} unidades disponibles
+                } @else {
+                  Consulta otras piezas de la tienda
+                }
+              </small>
+            </article>
+          </div>
+          <p class="artist-note">
+            Una pieza de artista independiente. Tu compra ayuda a que nuevas ideas sigan tomando
+            forma.
+          </p>
+          @if (auth.isAuthenticated()) {
+            <button class="add-detail" [disabled]="product.cantidad < 1" (click)="add(product)">
+              Añadir a la cesta <span>＋</span>
+            </button>
+          }
+        </div>
+      </section>
+    </div>
+  }
+</section>

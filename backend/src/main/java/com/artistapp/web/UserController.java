@@ -149,6 +149,7 @@ public class UserController {
         data.remove("password_actual");
         if (data.get("imagen") instanceof MultipartFile file) {
             data.put("imagen", storage.store(file, "uploads/usuarios", StorageService.Disk.PUBLIC));
+            storage.deleteUpload(db.value("SELECT imagen FROM usuarios WHERE id = ?", String.class, auth.id()));
         } else {
             data.remove("imagen");
         }

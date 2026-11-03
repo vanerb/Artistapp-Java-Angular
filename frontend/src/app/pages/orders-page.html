@@ -1,0 +1,93 @@
+<section class="orders">
+  <span class="kicker">{{ received() ? 'COMPRAS DE TUS CLIENTES' : (auth.isAdmin() ? 'VENTAS DE LA COMUNIDAD' : 'TU HISTORIAL DE COMPRAS') }}</span>
+  <h1>{{ received() ? 'Pedidos recibidos' : (auth.isAdmin() ? 'Pedidos de la tienda' : 'Mis compras') }}.</h1>
+  <p>{{ received() ? 'Consulta quién ha comprado tus productos y el estado de cada pedido.' : 'El camino que ha recorrido el arte hasta llegar a su nueva casa.' }}</p>
+  @if (message()) {
+    <div class="message">{{ message() }}</div>
+  }
+  <div class="list">
+    @for (order of orders(); track order.id) {
+      <article>
+        <header>
+          <div>
+            <span class="kicker">PEDIDO #{{ order.id }}</span>
+            <h2>{{ received() ? 'Comprador: ' + (order.buyer_name || 'Cliente') : order.nombre }}</h2>
+            @if (order.created_at) {
+              <time class="date">{{ orderDate(order) | date: 'd MMM yyyy · HH:mm' }}</time>
+            }
+          </div>
+          <span
+            class="status"
+            [class.sent]="order.estado === 'enviado'"
+            [class.done]="order.estado === 'entregado'"
+            [class.cancelled]="order.estado === 'cancelado'"
+            >{{ statusLabel(order.estado) }}</span
+          >
+        </header>
+        <div class="products">
+          @for (product of order.productos; track product.detalle_id) {
+            <div>
+              <img [src]="image(product.imagen)" [alt]="product.nombre" loading="lazy" />
+              <span>
+                {{ product.nombre }}
+                @if (!received() && product.seller_name) {
+                  <small class="seller">Vende {{ product.seller_name }}</small>
+                }
+                <small class="item-status">{{ itemLabel(order, product) }}</small>
+              </span>
+              <strong>{{ product.precio | currency: 'EUR' }}</strong>
+              @if (!received() && !auth.isAdmin() && order.estado !== 'cancelado' && product.estado_envio === 'entregado' && !product.recibido_confirmado_at) {
+                <button class="confirm-received" (click)="confirmReceived(order, product)">Confirmar recepción</button>
+              }
+              @if (!received() && product.id_tipo === 2 && order.estado !== 'cancelado' && product.estado_envio === 'entregado') {
+                <button (click)="download(order, product)">Descargar</button>
+              }
+            </div>
+          }
+        </div>
+        <footer>
+          <span>{{ received() ? 'Entrega a: ' + order.nombre + ' · ' + order.direccion + (order.telefono ? ' · Tel. ' + order.telefono : '') : order.direccion }}</span
+          ><strong>{{ (received() ? (order.total_vendedor ?? 0) : order.pago) | currency: 'EUR' }}</strong>
+          @if (auth.isAdmin() || received()) {
+            <select
+              #state
+              [attr.aria-label]="'Estado del pedido ' + order.id"
+              [disabled]="locked(order)"
+              (change)="status(order, state)"
+            >
+              @if (showsMixedState(order)) {
+                <option value="mixto" disabled [selected]="true">Varios estados</option>
+              }
+              <option value="preparando" [selected]="selectedState(order) === 'preparando'">Preparando</option>
+              <option value="enviado" [selected]="selectedState(order) === 'enviado'">Enviado</option>
+              <option value="entregado" [selected]="selectedState(order) === 'entregado'">Entregado</option>
+              @if (auth.isAdmin()) {
+                <option value="cancelado" [selected]="selectedState(order) === 'cancelado'">Cancelado</option>
+              }
+            </select>
+          } @else if (!received() && order.estado === 'preparando') {
+            <button (click)="cancel(order)">Cancelar pedido</button>
+          }
+        </footer>
+      </article>
+    } @empty {
+      <div class="empty">
+        {{ busy() ? 'Buscando tus pedidos…' : 'Todavía no tienes pedidos.' }}
+      </div>
+    }
+  </div>
+  @if (hasMore()) {
+    <button class="more" [disabled]="busy()" (click)="loadMore()">{{ busy() ? 'Cargando…' : 'Ver más pedidos' }}</button>
+  }
+  @if (confirmation()) {
+    <app-confirm-modal
+      [open]="true"
+      [title]="confirmation()!.title"
+      [message]="confirmation()!.message"
+      confirmLabel="Cancelar pedido"
+      tone="danger"
+      (cancel)="dismissConfirmation()"
+      (confirm)="confirmCancellation()"
+    />
+  }
+</section>

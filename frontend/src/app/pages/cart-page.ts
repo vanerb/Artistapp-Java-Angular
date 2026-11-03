@@ -109,7 +109,7 @@ type CartItem = {
       .kicker {
         display: block;
         color: #7045d4;
-        font-size: 9px;
+        font-size: 11px;
         letter-spacing: 0.15em;
         font-weight: 850;
       }
@@ -124,7 +124,7 @@ type CartItem = {
         border-radius: 99px;
         background: #e9e2fa;
         color: #563a9a;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
       }
       .layout {
@@ -157,7 +157,7 @@ type CartItem = {
         flex: 1;
       }
       .detail .kicker {
-        font-size: 8px;
+        font-size: 11px;
       }
       .detail h2 {
         font-size: 17px;
@@ -175,7 +175,7 @@ type CartItem = {
         border: 0;
         background: transparent;
         color: #9b5360;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         cursor: pointer;
       }
@@ -219,7 +219,7 @@ type CartItem = {
         border-color: #ffffff2a;
       }
       .summary p {
-        font-size: 10px;
+        font-size: 11px;
         color: #bdb6d0;
         line-height: 1.6;
         margin: 17px 0;
@@ -293,14 +293,14 @@ type CartItem = {
           height: 94px;
         }
         .remove {
-          font-size: 9px;
+          font-size: 11px;
           padding: 3px;
         }
         .detail h2 {
           font-size: 14px;
         }
         .detail p {
-          font-size: 10px;
+          font-size: 11px;
         }
       }
     `,

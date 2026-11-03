@@ -28,6 +28,9 @@ jobs:
       - name: Instalar dependencias
         working-directory: frontend
         run: npm ci
+      - name: Pasar los tests
+        working-directory: frontend
+        run: npm test
       - name: Compilar la demo
         working-directory: frontend
         run: npx ng build --configuration demo --base-href "/${{ github.event.repository.name }}/"

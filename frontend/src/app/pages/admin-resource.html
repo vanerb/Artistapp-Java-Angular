@@ -1,0 +1,301 @@
+<section class="resource">
+  <a routerLink="/admin" class="back">← Panel de control</a>
+  <div class="head">
+    <div>
+      <span class="kicker">GESTIÓN ARTISTAPP</span>
+      <h1>{{ config.title }}.</h1>
+      <p>{{ config.subtitle }}</p>
+    </div>
+    <div class="head-actions">
+      @if (config.fields.length && resource !== 'pedidos') {
+        <button class="create-button" (click)="openCreate()">
+          Crear {{ config.singular }}
+        </button>
+      }
+      <button class="refresh" (click)="load()">Actualizar</button>
+    </div>
+  </div>
+  @if (message()) {
+    <div class="message">{{ message() }}</div>
+  }
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          @for (column of config.columns; track column) {
+            <th>{{ labels[column] || column }}</th>
+          }
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            @for (column of config.columns; track column) {
+              <td>
+                @if (column === 'imagen') {
+                  <img
+                    class="thumb"
+                    [src]="image(row[column])"
+                    (error)="imageError($event)"
+                    alt=""
+                  />
+                } @else if (
+                  column === 'estado' && (resource === 'pedidos' || resource === 'informes')
+                ) {
+                  <select
+                    #state
+                    [attr.aria-label]="'Estado de ' + config.singular + ' ' + row.id"
+                    [disabled]="resource === 'pedidos' && (row[column] === 'cancelado' || row[column] === 'entregado')"
+                    (change)="status(row, state)"
+                  >
+                    @if (resource === 'pedidos') {
+                      @if (row[column] === 'entrega_parcial') {
+                        <option value="entrega_parcial" disabled [selected]="true">Entrega parcial</option>
+                      }
+                      @if (row[column] === 'pendiente_confirmacion') {
+                        <option value="pendiente_confirmacion" disabled [selected]="true">Pendiente de confirmar</option>
+                      }
+                      <option value="preparando" [selected]="row[column] === 'preparando'">Preparando</option>
+                      <option value="enviado" [selected]="row[column] === 'enviado'">Enviado</option>
+                      <option value="entregado" [selected]="row[column] === 'entregado'">Entregado</option>
+                      <option value="cancelado" [selected]="row[column] === 'cancelado'">Cancelado</option>
+                    } @else {
+                      <option value="pendiente" [selected]="row[column] === 'pendiente'">Pendiente</option>
+                      <option value="en revisión" [selected]="row[column] === 'en revisión'">En revisión</option>
+                      <option value="resuelta" [selected]="row[column] === 'resuelta'">Resuelta</option>
+                      <option value="descartada" [selected]="row[column] === 'descartada'">Descartada</option>
+                    }
+                  </select>
+                } @else {
+                  <span class="cell">{{ column === 'pago' ? (row[column] | currency: 'EUR') : format(row[column]) }}</span>
+                }
+              </td>
+            }
+            <td class="actions">
+              @if (resource === 'publicaciones') {
+                <button class="edit" (click)="visibility(row)">
+                  {{ row.tipo === 'public' ? 'Ocultar' : 'Publicar' }}
+                </button>
+              }
+              @if (resource === 'eventos') {
+                <button class="edit" (click)="loadParticipants(row)">Participantes</button>
+              }
+              @if (resource === 'usuarios' || config.fields.length) {
+                <button class="edit" (click)="edit(row)">Editar</button>
+              }
+              @if (resource !== 'pedidos') {
+                <button class="delete" (click)="remove(row)">Eliminar</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="empty" [attr.colspan]="config.columns.length + 1">
+              {{ busy() ? 'Cargando…' : 'No hay registros para mostrar.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (hasMore()) {
+    <button class="refresh" (click)="loadMore()" [disabled]="busy()">Cargar más</button>
+  }
+  <div class="count">
+    {{ rows().length }} {{ config.singular }}{{ rows().length === 1 ? '' : 'es' }}
+  </div>
+  @if (selectedEvent()) {
+    <div class="modal-backdrop" (click)="selectedEvent.set(null)">
+      <section
+        class="form-modal"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">PARTICIPANTES</span>
+            <h2>{{ selectedEvent().nombre }}</h2>
+            <p>Revisa las solicitudes para este evento.</p>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Cerrar"
+            (click)="selectedEvent.set(null)"
+          >
+            ×
+          </button>
+        </header>
+        @for (person of participants(); track person.id) {
+          <div class="participant">
+            <img class="thumb" [src]="image(person.imagen)" [alt]="person.usuario" /><span
+              >{{ person.usuario }} · {{ person.estado }}</span
+            >
+            @if (person.estado === 'aceptado') {
+              <button
+                type="button"
+                class="delete"
+                (click)="decideParticipant(person, 'rechazado')"
+              >
+                Eliminar participante
+              </button>
+            } @else if (person.estado === 'pendiente') {
+              <button
+                type="button"
+                class="edit"
+                (click)="decideParticipant(person, 'aceptado')"
+              >
+                Aceptar</button
+              ><button
+                type="button"
+                class="delete"
+                (click)="decideParticipant(person, 'rechazado')"
+              >
+                Rechazar
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="edit"
+                (click)="decideParticipant(person, 'aceptado')"
+              >
+                Aceptar solicitud
+              </button>
+            }
+          </div>
+        } @empty {
+          <p>No hay solicitudes.</p>
+        }
+      </section>
+    </div>
+  }
+  @if (formOpen()) {
+    <div class="modal-backdrop" (click)="closeForm()">
+      <section
+        class="form-modal"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">{{ editingRow() ? 'EDICIÓN' : 'NUEVO REGISTRO' }}</span>
+            <h2>{{ editingRow() ? 'Editar' : 'Crear' }} {{ config.singular }}</h2>
+            <p>Completa los datos del registro.</p>
+          </div>
+          <button type="button" class="modal-close" aria-label="Cerrar" (click)="closeForm()">
+            ×
+          </button>
+        </header>
+        <form (ngSubmit)="saveForm()">
+          <div class="fields">
+            @for (field of modalFields(); track field.key) {
+              <label
+                >{{ field.label }}
+                @if (field.key === 'id_tipo' && resource === 'usuarios') {
+                  <select
+                    [name]="field.key"
+                    [ngModel]="draft()[field.key]"
+                    (ngModelChange)="setDraft(field.key, $event)"
+                    required
+                  >
+                    <option [ngValue]="1">Administrador</option>
+                    <option [ngValue]="3">Organizador de eventos</option>
+                    <option [ngValue]="5">Artista</option>
+                    <option [ngValue]="7">Visitante</option>
+                  </select>
+                } @else if (field.key === 'id_tipo' && resource === 'productos') {
+                  <select
+                    [name]="field.key"
+                    [ngModel]="draft()[field.key]"
+                    (ngModelChange)="setDraft(field.key, $event)"
+                    required
+                  >
+                    <option [ngValue]="1">Pieza física</option>
+                    <option [ngValue]="2">Descarga digital</option>
+                  </select>
+                } @else if (field.key === 'estado' && resource === 'pedidos') {
+                  <select
+                    [name]="field.key"
+                    [ngModel]="draft()[field.key]"
+                    (ngModelChange)="setDraft(field.key, $event)"
+                    required
+                  >
+                    <option value="preparando">Preparando</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                } @else if (field.key === 'id_categoria') {
+                  <select
+                    [name]="field.key"
+                    [ngModel]="draft()[field.key]"
+                    (ngModelChange)="setDraft(field.key, $event)"
+                    required
+                  >
+                    <option [ngValue]="null">Selecciona categoría</option>
+                    @for (category of categories(); track category.id) {
+                      <option [ngValue]="category.id">{{ category.nombre }}</option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    [type]="field.type || 'text'"
+                    [name]="field.key"
+                    [ngModel]="draft()[field.key]"
+                    (ngModelChange)="setDraft(field.key, $event)"
+                    [required]="field.required ?? false"
+                    [step]="field.type === 'number' ? 'any' : null"
+                  />
+                }
+              </label>
+            }
+            @if (config.upload) {
+              <label class="file-field"
+                >{{ editingRow() ? 'Cambiar imagen (opcional)' : 'Imagen de portada'
+                }}<input
+                  type="file"
+                  accept="image/*"
+                  [required]="!editingRow() && resource === 'productos'"
+                  (change)="chooseFile($event)"
+              /></label>
+            }
+            @if (resource === 'productos' && draft()['id_tipo'] === 2) {
+              <label class="file-field"
+                >Archivo descargable<input
+                  type="file"
+                  [required]="!editingRow()"
+                  (change)="chooseDigitalFile($event)"
+              /></label>
+            }
+          </div>
+          @if (imagePreview()) {
+            <img class="image-preview" [src]="imagePreview()" alt="Vista previa" />
+          }
+          @if (formError()) {
+            <p class="form-error" role="alert">{{ formError() }}</p>
+          }
+          <footer>
+            <button type="button" class="cancel" (click)="closeForm()">Cancelar</button
+            ><button class="save-button" [disabled]="busy()">
+              {{ busy() ? 'Guardando…' : editingRow() ? 'Guardar cambios' : 'Crear registro' }}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  }
+  @if (confirmation()) {
+    <app-confirm-modal
+      [open]="true"
+      title="Eliminar registro"
+      [message]="confirmation()!.message"
+      confirmLabel="Eliminar"
+      tone="danger"
+      (cancel)="dismissConfirmation()"
+      (confirm)="confirmRemoval()"
+    />
+  }
+</section>

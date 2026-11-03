@@ -126,8 +126,9 @@ La API se configura con variables de entorno (todas tienen un valor por defecto 
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | vacío, `587` | SMTP. Sin `MAIL_HOST`, los correos se escriben en el log. |
 | `STORAGE_PATH` | `storage/app` | Carpeta de archivos públicos (`public/`) y privados (`private/`). |
 | `APP_TIMEZONE` | `Europe/Madrid` | Zona horaria de fechas y mensajes. |
+| `TOKEN_DAYS` | `30` | Días que dura una sesión antes de tener que volver a entrar. |
 
-Para usar el volcado histórico, importa `BaseDeDatos/vrb_artistapp.sql`. Para una demo aislada, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. En el SQL de muestra, las cuentas usan la contraseña `Usuario123`; los nombres y textos de muestra son ficticios.
+Para tener datos de ejemplo, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. En el SQL de muestra, las cuentas usan la contraseña `Usuario123`; los nombres y textos de muestra son ficticios.
 
 Desde PowerShell, en la raíz del repositorio:
 
@@ -157,7 +158,7 @@ npm start
 
 `npm start` ejecuta Angular con el proxy de desarrollo configurado. Abre [http://localhost:4200](http://localhost:4200). Mantén el backend activo en la otra terminal.
 
-Para probar la versión de demostración (sin backend) en local: `npm run start:demo`.
+Para probar la versión de demostración (sin backend) en local: `npm run start:demo`. Para ejecutar los tests del frontend y de la demo: `npm test`.
 
 Para compilar la aplicación:
 
@@ -173,7 +174,9 @@ Si no se configura `MAIL_HOST`, la API escribe los correos de recuperación en s
 
 GitHub Pages solo sirve archivos estáticos, así que la demo publica el frontend Angular compilado con la configuración `demo`. En ella, un interceptor HTTP (`frontend/src/app/demo`) responde a las llamadas a `/api` dentro del navegador con las mismas rutas, permisos y respuestas que la API Spring Boot, a partir de `BaseDeDatos/vrb_artistapp_muestra.sql`. Los cambios (publicaciones, pedidos, mensajes...) se guardan en el `localStorage` de cada visitante y se pueden restablecer desde el aviso de la demo.
 
-El workflow `.github/workflows/pages.yml` la compila y publica en cada push a `main`. Para activarlo la primera vez: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Como la demo repite las reglas de la API en TypeScript, un cambio de reglas de negocio hay que hacerlo en los dos sitios: `frontend/src/app/demo/demo-api.spec.ts` y `backend/src/test/java/com/artistapp/OrderFlowTest.java` comprueban los mismos casos.
+
+El workflow `.github/workflows/pages.yml` pasa los tests, la compila y la publica en cada push a `main`. Para activarlo la primera vez: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Datos de demostración
 

@@ -1,0 +1,699 @@
+<section class="profile wrap">
+  <div class="profile-head">
+    <img
+      class="avatar"
+      [src]="image(user()?.imagen)"
+      (error)="imageError($event)"
+      [alt]="user()?.usuario || 'Perfil'"
+    />
+    <div>
+      <span class="kicker">TU ESPACIO CREATIVO</span>
+      <h1>{{ user()?.usuario || 'Mi perfil' }}</h1>
+      <p>
+        {{ user()?.biografia || 'Dale forma a tu espacio y comparte lo que estás creando.' }}
+      </p>
+      <div class="profile-stats">
+        <span
+          ><strong>{{ posts().length }}</strong> publicaciones</span
+        ><button type="button" (click)="openCommunity('seguidores')">
+          <strong>{{ followers().length }}</strong> seguidores</button
+        ><button type="button" (click)="openCommunity('seguidos')">
+          <strong>{{ favorites().length }}</strong> seguidos
+        </button>
+      </div>
+    </div>
+    <button class="edit" (click)="openModal('profile')">Editar perfil</button>
+  </div>
+  @if (busy()) {
+    <p class="profile-loading-inline" role="status">Guardando los cambios…</p>
+  }
+  @if (message()) {
+    <div class="profile-alert-backdrop" (click)="message.set('')">
+      <section
+        class="profile-alert"
+        role="alertdialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <button class="modal-close" aria-label="Cerrar" (click)="message.set('')">×</button
+        ><span class="kicker">{{ messageFailed() ? 'NO SE PUDO COMPLETAR' : 'AVISO' }}</span>
+        <h2>
+          {{ messageFailed() ? 'Revisa este detalle' : 'Hecho' }}
+        </h2>
+        <p>{{ message() }}</p>
+        <button class="primary" (click)="message.set('')">Entendido</button>
+      </section>
+    </div>
+  }
+  @if (confirmation(); as dialog) {
+    <app-confirm-modal
+      [open]="true"
+      [title]="dialog.title"
+      [message]="dialog.message"
+      [confirmLabel]="dialog.confirmLabel"
+      tone="danger"
+      (cancel)="dismissConfirmation()"
+      (confirm)="confirmAction()"
+    />
+  }
+  <div class="profile-tabs">
+    <nav aria-label="Secciones del perfil">
+      <button [class.selected]="section() === 'obras'" (click)="section.set('obras')">
+        Mis obras <b>{{ posts().length }}</b>
+      </button>
+      @if (canManageNotices()) {
+        <button [class.selected]="section() === 'avisos'" (click)="section.set('avisos')">
+          Avisos <b>{{ notices().length }}</b>
+        </button>
+      }
+      <button [class.selected]="section() === 'eventos'" (click)="section.set('eventos')">
+        Eventos <b>{{ ownEvents().length + attendingEvents().length }}</b></button
+      ><button [class.selected]="section() === 'favoritos'" (click)="section.set('favoritos')">
+        Favoritos <b>{{ favoriteWorks().length }}</b>
+      </button>
+      @if (canManageProducts()) {
+        <button [class.selected]="section() === 'tienda'" (click)="section.set('tienda')">
+          Tienda <b>{{ products().length }}</b>
+        </button>
+      }
+    </nav>
+    <div>
+      @if (section() === 'obras' && canPublishWorks()) {
+        <button class="primary" (click)="openModal('publication')">Publicar obra</button>
+      }
+      @if (section() === 'avisos' && canManageNotices()) {
+        <button class="primary" (click)="openModal('notice')">Publicar aviso</button>
+      }
+      @if (section() === 'tienda' && canManageProducts()) {
+        <button class="primary" (click)="openModal('product')">Añadir producto</button>
+      }
+      <button (click)="openModal('password')">Cambiar contraseña</button
+      ><button (click)="load()">Actualizar</button>
+    </div>
+  </div>
+  @if (section() === 'avisos') {
+    <div class="notice-grid">
+      @for (item of notices(); track item.id) {
+        <article>
+          <span class="kicker">{{ item.fecha_publicacion }}</span>
+          <h2>{{ item.titulo }}</h2>
+          <p>{{ item.aviso }}</p>
+          <div>
+            <button class="action-edit" (click)="editNotice(item)">Editar</button
+            ><button class="action-delete" (click)="removeNotice(item)">Eliminar</button>
+          </div>
+        </article>
+      } @empty {
+        <div class="empty">Aún no has publicado avisos.</div>
+      }
+    </div>
+  }
+  @if (section() === 'favoritos') {
+    <div class="liked-grid">
+      @for (item of favoriteWorks(); track item.id) {
+        <article>
+          <button class="liked-art" type="button" (click)="selectedPublication.set(item)">
+            <img
+              [src]="image(item.imagen)"
+              (error)="imageError($event)"
+              [alt]="item.titulo"
+            /><span
+              ><strong>{{ item.titulo }}</strong
+              ><small>Por {{ item.artist_name || 'artista de la comunidad' }}</small></span
+            ></button
+          ><button
+            class="unlike"
+            type="button"
+            [disabled]="likeBusy(item)"
+            (click)="unlike(item)"
+          >
+            {{ likeBusy(item) ? 'Actualizando…' : '♥ Quitar me gusta' }}
+          </button>
+        </article>
+      } @empty {
+        <div class="empty">Aún no has dado me gusta a ninguna obra.</div>
+      }
+    </div>
+  }
+  @if (communityModal(); as community) {
+    <div class="modal-backdrop" (click)="communityModal.set(null)">
+      <section
+        class="profile-modal community-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Comunidad"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">TU COMUNIDAD</span>
+            <h2>{{ community === 'seguidores' ? 'Seguidores' : 'Seguidos' }}</h2>
+            <p>Personas conectadas con tu espacio creativo.</p>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Cerrar"
+            (click)="communityModal.set(null)"
+          >
+            ×
+          </button>
+        </header>
+        <nav class="community-switch">
+          <button
+            [class.selected]="community === 'seguidores'"
+            (click)="communityModal.set('seguidores')"
+          >
+            Seguidores <b>{{ followers().length }}</b></button
+          ><button
+            [class.selected]="community === 'seguidos'"
+            (click)="communityModal.set('seguidos')"
+          >
+            Seguidos <b>{{ favorites().length }}</b>
+          </button>
+        </nav>
+        <div class="community-list">
+          @for (item of community === 'seguidores' ? followers() : favorites(); track item.id) {
+            <a [routerLink]="['/artistas', item.id]" (click)="communityModal.set(null)"
+              ><img
+                [src]="image(item.imagen)"
+                (error)="imageError($event)"
+                [alt]="item.usuario"
+              /><span
+                ><strong>{{ item.usuario }}</strong
+                ><small>{{ item.biografia || 'Perfil de la comunidad' }}</small></span
+              ><span class="view-profile">Ver perfil ↗</span></a
+            >
+          } @empty {
+            <p class="empty">
+              {{
+                community === 'seguidores'
+                  ? 'Todavía no tienes seguidores.'
+                  : 'Todavía no sigues a ningún perfil.'
+              }}
+            </p>
+          }
+        </div>
+      </section>
+    </div>
+  }
+  @if (section() === 'tienda' && canManageProducts()) {
+    <section class="manage store-manage">
+      <div class="store-intro">
+        <span class="kicker">TU TIENDA</span>
+        <h2>Tu escaparate</h2>
+        <p>Gestiona las piezas físicas y descargas digitales que compartes con la comunidad.</p>
+        <button class="primary" (click)="openModal('product')">Añadir producto <span>＋</span></button>
+      </div>
+      <div class="store-product-grid">
+        @for (item of products(); track item.id) {
+          <article class="store-product-card">
+            <div class="store-product-image">
+              <img [src]="image(item.imagen)" (error)="imageError($event)" [alt]="item.nombre" loading="lazy" />
+              <span>{{ item.cantidad > 0 ? 'EN STOCK' : 'AGOTADO' }}</span>
+            </div>
+            <div class="store-product-info">
+              <span class="store-product-type">PIEZA ORIGINAL</span>
+              <h3>{{ item.nombre }}</h3>
+              <p>{{ item.descripcion || 'Una pieza de tu escaparate creativo.' }}</p>
+              <strong class="store-product-price">{{ item.precio | currency: 'EUR' }}</strong>
+              <div class="store-product-actions">
+                <button class="row-edit" (click)="editProduct(item)">Editar</button>
+                <button class="row-edit danger" (click)="removeProduct(item)">Eliminar</button>
+              </div>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-inline store-empty">Todavía no tienes productos en tu tienda. Pulsa «Añadir producto» para crear el primero.</p>
+        }
+      </div>
+    </section>
+  }
+  @if (section() === 'eventos') {
+    <section class="events-dashboard">
+      <header>
+        <div>
+          <span class="kicker">TU AGENDA</span>
+          <h2>Eventos</h2>
+          <p>
+            Consulta los eventos organizados y aquellos en los que has solicitado participar.
+          </p>
+        </div>
+        @if (user()?.id_tipo === 3) {
+          <button class="primary" (click)="openModal('event')">Crear evento</button>
+        }
+      </header>
+      @if (user()?.id_tipo === 3) {
+        <h3>
+          Organizados por ti <span>{{ ownEvents().length }}</span>
+        </h3>
+        <div class="event-cards">
+          @for (item of ownEvents(); track item.id) {
+            <article>
+              <img
+                [src]="image(item.imagen)"
+                (error)="imageError($event)"
+                [alt]="item.nombre"
+              />
+              <div class="event-copy">
+                <span class="kicker">{{ item.fecha_inicio | date: 'd MMM yyyy' }}</span>
+                <h4>{{ item.nombre }}</h4>
+                <p>{{ item.ubicacion }}</p>
+              </div>
+              <div class="event-tools">
+                <button class="row-edit" (click)="editEvent(item)">Editar</button
+                ><button class="row-edit" (click)="loadParticipants(item)">Participantes</button
+                ><button class="row-edit danger" (click)="removeEvent(item)">Eliminar</button>
+              </div>
+            </article>
+          } @empty {
+            <p class="empty-inline">Aún no has organizado eventos.</p>
+          }
+        </div>
+      }
+      <h3>
+        Solicitudes y plazas <span>{{ attendingEvents().length }}</span>
+      </h3>
+      <div class="event-cards">
+        @for (item of attendingEvents(); track item.id) {
+          <article>
+            <img [src]="image(item.imagen)" (error)="imageError($event)" [alt]="item.nombre" />
+            <div class="event-copy">
+              <span class="kicker">{{ item.fecha_inicio | date: 'd MMM yyyy' }}</span>
+              <h4>{{ item.nombre }}</h4>
+              <p>{{ item.ubicacion }} · {{ participationLabel(item.participacion) }}</p>
+            </div>
+            <div class="event-tools">
+              <button class="row-edit" (click)="leaveEvent(item)">Salir del evento</button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-inline">No tienes solicitudes ni plazas en eventos próximos.</p>
+        }
+      </div>
+    </section>
+  }
+  @if (section() === 'obras') {
+    <div class="art-grid">
+      @for (post of posts(); track post.id) {
+        <article>
+          <img [src]="image(post.imagen)" [alt]="post.titulo" loading="lazy" />
+          <div>
+            <span>♥ {{ post.megusta }}</span
+            ><span class="art-actions"
+              ><button type="button" class="action-edit" (click)="editPublication(post)">
+                Editar</button
+              ><button type="button" class="action-delete" (click)="remove(post)">
+                Eliminar</button
+              ><button
+                type="button"
+                class="action-comments"
+                (click)="selectedPublication.set(post)"
+              >
+                Comentarios
+              </button></span
+            >
+          </div>
+          <h3>{{ post.titulo }}</h3>
+          <p>{{ post.descripcion }}</p>
+        </article>
+      } @empty {
+        <div class="empty">Tus primeras obras aparecerán aquí.</div>
+      }
+    </div>
+  }
+  @if (selectedPublication(); as publication) {
+    <app-publication-detail-modal
+      [publication]="publication"
+      (close)="selectedPublication.set(null)"
+    />
+  }
+  @if (participantEvent()) {
+    <div class="modal-backdrop" (click)="participantEvent.set(null)">
+      <section
+        class="profile-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Participantes del evento"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">SOLICITUDES</span>
+            <h2>{{ participantEvent().nombre }}</h2>
+            <p>Revisa las solicitudes para participar.</p>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Cerrar"
+            (click)="participantEvent.set(null)"
+          >
+            ×
+          </button>
+        </header>
+        @for (person of participants(); track person.id) {
+          <div class="participant">
+            <img
+              [src]="image(person.imagen)"
+              (error)="imageError($event)"
+              [alt]="person.usuario"
+            /><span
+              ><strong>{{ person.usuario }}</strong
+              ><small>{{ person.estado }}</small></span
+            >
+            @if (person.estado === 'aceptado') {
+              <button
+                type="button"
+                class="row-edit danger"
+                (click)="decideParticipant(person, 'rechazado')"
+              >
+                Eliminar participante
+              </button>
+            } @else if (person.estado === 'pendiente') {
+              <button type="button" (click)="decideParticipant(person, 'aceptado')">
+                Aceptar</button
+              ><button
+                type="button"
+                class="row-edit danger"
+                (click)="decideParticipant(person, 'rechazado')"
+              >
+                Rechazar
+              </button>
+            } @else {
+              <button type="button" (click)="decideParticipant(person, 'aceptado')">
+                Aceptar solicitud
+              </button>
+            }
+          </div>
+        } @empty {
+          <p class="empty">No hay solicitudes para este evento.</p>
+        }
+      </section>
+    </div>
+  }
+  @if (modal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <section
+        class="profile-modal"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="modalTitle()"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">{{ modalEyebrow() }}</span>
+            <h2>{{ modalTitle() }}</h2>
+            <p>{{ modalDescription() }}</p>
+          </div>
+          <button type="button" class="modal-close" aria-label="Cerrar" (click)="closeModal()">
+            ×
+          </button>
+        </header>
+        @if (modal() === 'profile') {
+          <form (ngSubmit)="save()">
+            <div class="profile-photo">
+              <img
+                [src]="profilePreview() || image(user()?.imagen)"
+                (error)="imageError($event)"
+                alt="Foto de perfil"
+              /><label
+                >Cambiar foto de perfil<input
+                  type="file"
+                  accept="image/*"
+                  (change)="chooseProfileImage($event)"
+              /></label>
+            </div>
+            <div class="two">
+              <label>Nombre<input name="nombre" [(ngModel)]="form.nombre" required /></label
+              ><label
+                >Apellidos<input name="apellidos" [(ngModel)]="form.apellidos" required
+              /></label>
+            </div>
+            <label
+              >Nombre de usuario<input
+                name="usuario"
+                [(ngModel)]="form.usuario"
+                required /></label
+            ><label
+              >Correo electrónico<input
+                name="correo"
+                [(ngModel)]="form.correo"
+                type="email"
+                required /></label
+            ><label
+              >Biografía<textarea
+                name="biografia"
+                [(ngModel)]="form.biografia"
+                maxlength="255"
+              ></textarea>
+            </label>
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">Guardar cambios</button>
+            </footer>
+          </form>
+        }
+        @if (modal() === 'password') {
+          <form (ngSubmit)="changePassword()">
+            <label
+              >Contraseña actual<input
+                type="password"
+                name="password_actual"
+                [(ngModel)]="passwordForm.password_actual"
+                autocomplete="current-password"
+                required /></label
+            ><label
+              >Nueva contraseña<input
+                type="password"
+                name="password"
+                [(ngModel)]="passwordForm.password"
+                autocomplete="new-password"
+                minlength="8"
+                required /></label
+            ><label
+              >Repite la nueva contraseña<input
+                type="password"
+                name="password_confirmation"
+                [(ngModel)]="passwordForm.password_confirmation"
+                autocomplete="new-password"
+                minlength="8"
+                required
+            /></label>
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">Actualizar contraseña</button>
+            </footer>
+          </form>
+        }
+        @if (modal() === 'notice') {
+          <form (ngSubmit)="saveNotice()">
+            <label
+              >Título<input
+                name="notice-title"
+                [(ngModel)]="notice.titulo"
+                required
+                maxlength="255" /></label
+            ><label
+              >Aviso<textarea
+                name="notice-body"
+                [(ngModel)]="notice.aviso"
+                required
+                maxlength="255"
+              ></textarea>
+            </label>
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">
+                {{ editingNotice() ? 'Guardar cambios' : 'Publicar aviso' }}
+              </button>
+            </footer>
+          </form>
+        }
+        @if (modal() === 'publication') {
+          <form (ngSubmit)="publish()">
+            <label
+              >Título<input
+                name="titulo"
+                [(ngModel)]="draft.titulo"
+                required
+                maxlength="255"
+                placeholder="Título de la obra" /></label
+            ><label
+              >Descripción<textarea
+                name="descripcion"
+                [(ngModel)]="draft.descripcion"
+                required
+                maxlength="255"
+                placeholder="Cuéntanos algo de ella"
+              ></textarea>
+            </label>
+            <div class="two">
+              <label
+                >Categoría<select name="id_categoria" [(ngModel)]="draft.id_categoria" required>
+                  <option [ngValue]="0" disabled>Elige una categoría</option>
+                  @for (category of categories(); track category.id) {
+                    <option [ngValue]="category.id">{{ category.nombre }}</option>
+                  }
+                </select></label
+              ><label
+                >Imagen<input
+                  type="file"
+                  accept="image/*"
+                  (change)="chooseImage($event)"
+                  [required]="!editingPost()"
+              /></label>
+            </div>
+            @if (publicationPreview()) {
+              <img
+                class="image-preview"
+                [src]="publicationPreview()"
+                alt="Vista previa de la obra"
+              />
+            }
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">
+                {{
+                  busy() ? 'Guardando…' : editingPost() ? 'Guardar cambios' : 'Publicar obra'
+                }}
+              </button>
+            </footer>
+          </form>
+        }
+        @if (modal() === 'product') {
+          <form (ngSubmit)="createProduct()">
+            <label
+              >Nombre<input
+                name="product-name"
+                [(ngModel)]="product.nombre"
+                required
+                placeholder="Nombre de la pieza" /></label
+            ><label
+              >Descripción<textarea
+                name="product-description"
+                [(ngModel)]="product.descripcion"
+                required
+                placeholder="Descripción"
+              ></textarea>
+            </label>
+            <div class="two">
+              <label
+                >Precio (€)<input
+                  name="price"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  [(ngModel)]="product.precio"
+                  required /></label
+              ><label
+                >Unidades<input
+                  name="stock"
+                  type="number"
+                  min="0"
+                  [(ngModel)]="product.cantidad"
+                  required
+              /></label>
+            </div>
+            <div class="two">
+              <label
+                >Formato<select name="product-type" [(ngModel)]="product.id_tipo">
+                  <option [ngValue]="1">Pieza física</option>
+                  <option [ngValue]="2">Descarga digital</option>
+                </select></label
+              ><label
+                >Imagen de portada<input
+                  type="file"
+                  accept="image/*"
+                  (change)="chooseProductImage($event)"
+                  [required]="!editingProduct()"
+              /></label>
+            </div>
+            @if (productPreview()) {
+              <img
+                class="image-preview"
+                [src]="productPreview()"
+                alt="Vista previa de la pieza"
+              />
+            }
+            @if (product.id_tipo === 2) {
+              <label
+                >Archivo para descarga<input
+                  type="file"
+                  (change)="chooseDigitalFile($event)"
+                  [required]="!editingProduct()"
+              /></label>
+            }
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">
+                {{
+                  busy()
+                    ? 'Guardando…'
+                    : editingProduct()
+                      ? 'Guardar cambios'
+                      : 'Añadir a mi tienda'
+                }}
+              </button>
+            </footer>
+          </form>
+        }
+        @if (modal() === 'event') {
+          <form (ngSubmit)="createEvent()">
+            <label
+              >Nombre del evento<input
+                name="event-name"
+                [(ngModel)]="event.nombre"
+                required
+                placeholder="Nombre del evento" /></label
+            ><label
+              >Lugar<input
+                name="venue"
+                [(ngModel)]="event.ubicacion"
+                required
+                placeholder="Lugar" /></label
+            ><label
+              >Enlace<input
+                name="event-link"
+                [(ngModel)]="event.link"
+                type="url"
+                placeholder="https://"
+            /></label>
+            <div class="two">
+              <label
+                >Desde<input
+                  name="start"
+                  [(ngModel)]="event.fecha_inicio"
+                  type="date"
+                  required /></label
+              ><label
+                >Hasta<input name="end" [(ngModel)]="event.fecha_fin" type="date" required
+              /></label>
+            </div>
+            <label
+              >Cartel o imagen<input
+                type="file"
+                accept="image/*"
+                (change)="chooseEventImage($event)"
+            /></label>
+            @if (eventPreview()) {
+              <img class="image-preview" [src]="eventPreview()" alt="Vista previa del evento" />
+            }
+            <footer>
+              <button type="button" class="cancel" (click)="closeModal()">Cancelar</button
+              ><button class="primary" [disabled]="busy()">
+                {{
+                  busy() ? 'Guardando…' : editingEvent() ? 'Guardar cambios' : 'Publicar evento'
+                }}
+              </button>
+            </footer>
+          </form>
+        }
+        @if (message()) {
+          <p class="modal-message" role="alert">{{ message() }}</p>
+        }
+      </section>
+    </div>
+  }
+</section>

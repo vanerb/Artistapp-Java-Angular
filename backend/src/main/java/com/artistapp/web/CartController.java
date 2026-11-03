@@ -64,6 +64,7 @@ public class CartController {
     public ResponseEntity<Object> add(@PathVariable long product, AuthUser auth) {
         Map<String, Object> item = db.first("SELECT * FROM productos WHERE id = ? FOR UPDATE", product);
         abortUnless(item != null, 404);
+        abortIf(Users.id(item, "id_usuario") == auth.id(), 422, "No puedes comprar tus propios productos.");
         abortIf(Users.id(item, "cantidad") < 1, 422, "Este producto está agotado.");
         long cartId = cartId(auth.id());
         boolean exists = db.exists("SELECT 1 FROM cesta_producto WHERE id_cesta = ? AND id_producto = ?", cartId, product);

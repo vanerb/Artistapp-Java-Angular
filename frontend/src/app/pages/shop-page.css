@@ -1,0 +1,254 @@
+:host {
+  display: block;
+  color: #272432;
+}
+.shop-head {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 54px 25px 38px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.kicker,
+.seller {
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  color: #7045d4;
+}
+.shop-head h1 {
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.075em;
+  margin: 14px 0;
+}
+.shop-head h1 em {
+  font-style: normal;
+  color: #7045d4;
+}
+.shop-head p {
+  max-width: 520px;
+  color: #77727e;
+  font-size: 14px;
+}
+.cart-link {
+  border-radius: 999px;
+  padding: 12px 17px;
+  background: #29253a;
+  color: white;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 750;
+}
+.cart-link span {
+  color: #d9fa72;
+  padding-left: 10px;
+}
+.wrap {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 25px 85px;
+}
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e9e2da;
+  background: #fffdf9;
+  padding: 7px 8px 7px 14px;
+  border-radius: 13px;
+  margin-bottom: 25px;
+}
+.filter > span {
+  font-size: 22px;
+  color: #77727e;
+}
+.filter input,
+.filter select {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 9px 7px;
+  font: 12px system-ui;
+  color: #272432;
+}
+.filter input {
+  flex: 1;
+}
+.filter select {
+  border-left: 1px solid #ece5de;
+}
+.filter button {
+  border: 0;
+  border-radius: 999px;
+  background: #7045d4;
+  color: white;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 750;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 17px;
+}
+.product {
+  overflow: hidden;
+  background: #fffdf9;
+  border: 1px solid #ece5de;
+  border-radius: 17px;
+  transition:
+    transform 0.22s,
+    box-shadow 0.22s;
+}
+.product:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px #27243214;
+}
+.product-image {
+  height: 280px;
+  position: relative;
+  display: block;
+  background: #eee8e1;
+  overflow: hidden;
+}
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s;
+}
+.product:hover img {
+  transform: scale(1.04);
+}
+.product-image > span {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 7px 10px;
+  background: #fffdf9e8;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  color: #4b3d9a;
+}
+.product-info {
+  padding: 16px;
+}
+.seller {
+  font-size: 11px;
+}
+.product-info h2 {
+  font-size: 17px;
+  margin: 8px 0 5px;
+  letter-spacing: -0.04em;
+}
+.product-info p {
+  height: 38px;
+  overflow: hidden;
+  color: #77727e;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 0;
+}
+.product-info footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+.product-info strong {
+  font-size: 17px;
+}
+.product-info button {
+  border: 0;
+  border-radius: 999px;
+  background: #7045d4;
+  color: white;
+  padding: 10px 13px;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.product-info button span {
+  margin-left: 5px;
+  color: #d9fa72;
+}
+.empty {
+  grid-column: 1/-1;
+  padding: 50px;
+  text-align: center;
+  color: #77727e;
+}
+.notice {
+  color: #513a91;
+  font-size: 12px;
+}
+@media (max-width: 820px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .shop-head {
+    padding: 40px 19px 25px;
+    align-items: flex-start;
+  }
+  .shop-head h1 {
+    font-size: 48px;
+  }
+  .shop-head p {
+    font-size: 12px;
+  }
+  .cart-link {
+    white-space: nowrap;
+    margin-top: 24px;
+  }
+  .wrap {
+    padding: 0 18px 55px;
+  }
+  .filter {
+    flex-wrap: wrap;
+  }
+  .filter input {
+    flex: 1 1 calc(100% - 40px);
+  }
+  .filter select {
+    flex: 1 1 40%;
+    border: 0;
+    border-top: 1px solid #ece5de;
+    padding-top: 12px;
+  }
+  .filter button {
+    flex: 1 1 100%;
+    margin-top: 4px;
+  }
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .product-image {
+    height: 185px;
+  }
+  .product-info {
+    padding: 12px;
+  }
+  .product-info h2 {
+    font-size: 14px;
+  }
+  .product-info p {
+    font-size: 11px;
+    height: 34px;
+  }
+  .product-info footer {
+    align-items: flex-start;
+    gap: 6px;
+    flex-direction: column;
+  }
+  .product-info button {
+    width: 100%;
+  }
+}

@@ -213,6 +213,63 @@ class OrderFlowTest {
         assertThat(upload("x.png", png.toByteArray())).isEqualTo(201);
     }
 
+    @Test
+    void sellerCannotBuyTheirOwnProduct() {
+        Response response = call(sellerA, "POST", "/cart/items/" + productA, null);
+        assertThat(response.status).isEqualTo(422);
+        assertThat(response.body).contains("propios productos");
+    }
+
+    @Test
+    void eventRulesProtectDatesAndParticipants() {
+        Map<String, Object> event = new LinkedHashMap<>();
+        event.put("nombre", "E");
+        event.put("ubicacion", "U");
+        event.put("fecha_inicio", "2030-01-10");
+        event.put("fecha_fin", "2030-01-12");
+        event.put("id_usuario", sellerBId);
+        long id = db.insert("eventos", event);
+        assertThat(call(sellerB, "PATCH", "/events/" + id, Map.of("fecha_fin", "2030-01-01")).status).isEqualTo(422);
+        assertThat(call(sellerB, "PATCH", "/events/" + id, Map.of("fecha_fin", "2030-01-20")).status).isEqualTo(200);
+        assertThat(call(buyer, "GET", "/events/" + id + "/participants", null).status).isEqualTo(403);
+        assertThat(call(sellerB, "GET", "/events/" + id + "/participants", null).status).isEqualTo(200);
+        assertThat(call(admin, "GET", "/events/" + id + "/participants", null).status).isEqualTo(200);
+
+        db.exec("INSERT INTO event_chat_messages (event_id, user_id, body) VALUES (?, ?, 'hola')", id, sellerBId);
+        assertThat(call(sellerB, "DELETE", "/events/" + id, null).status).isEqualTo(200);
+        assertThat(db.count("SELECT COUNT(*) FROM event_chat_messages WHERE event_id = ?", id)).isZero();
+    }
+
+    @Test
+    void deletingContentLeavesNoOrphans() {
+        Map<String, Object> post = new LinkedHashMap<>();
+        post.put("titulo", "t");
+        post.put("descripcion", "d");
+        post.put("id_categoria", 1);
+        post.put("id_usuario", sellerAId);
+        long postId = db.insert("publicaciones", post);
+        assertThat(call(buyer, "POST", "/publications/" + postId + "/comments", Map.of("body", "c")).status).isEqualTo(201);
+        assertThat(call(sellerA, "DELETE", "/publications/" + postId, null).status).isEqualTo(200);
+        assertThat(db.count("SELECT COUNT(*) FROM publication_comments WHERE publication_id = ?", postId)).isZero();
+
+        assertThat(call(buyer, "POST", "/direct-messages/" + sellerAId, Map.of("body", "hola")).status).isEqualTo(201);
+        assertThat(call(admin, "DELETE", "/admin/users/" + sellerAId, null).status).isEqualTo(200);
+        assertThat(db.count("SELECT COUNT(*) FROM direct_messages WHERE recipient_id = ?", sellerAId)).isZero();
+        assertThat(db.count("SELECT COUNT(*) FROM app_notifications WHERE user_id = ?", sellerAId)).isZero();
+    }
+
+    @Test
+    void expiredSessionsStopWorking() {
+        assertThat(call(buyer, "GET", "/auth/me", null).status).isEqualTo(200);
+        long tokenId = Long.parseLong(buyer.substring(0, buyer.indexOf('|')));
+        db.exec("UPDATE personal_access_tokens SET expires_at = ? WHERE id = ?", java.time.LocalDateTime.now().minusMinutes(1), tokenId);
+        assertThat(call(buyer, "GET", "/auth/me", null).status).isEqualTo(401);
+
+        long legacy = Long.parseLong(sellerA.substring(0, sellerA.indexOf('|')));
+        db.exec("UPDATE personal_access_tokens SET expires_at = NULL, created_at = ? WHERE id = ?", java.time.LocalDateTime.now().minusDays(31), legacy);
+        assertThat(call(sellerA, "GET", "/auth/me", null).status).isEqualTo(401);
+    }
+
     // ---------------------------------------------------------------- utilidades
 
     private long user(int type) {

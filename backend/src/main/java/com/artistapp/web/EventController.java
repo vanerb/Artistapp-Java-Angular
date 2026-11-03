@@ -109,8 +109,15 @@ public class EventController {
         v.field("fecha_fin").sometimes().required().date();
         v.field("imagen").nullable().image().max(8192);
         Map<String, Object> data = v.validate();
+        String start = String.valueOf(data.getOrDefault("fecha_inicio", event.get("fecha_inicio")));
+        String end = String.valueOf(data.getOrDefault("fecha_fin", event.get("fecha_fin")));
+        if (end.compareTo(start) < 0) {
+            String message = "La fecha de fin debe ser igual o posterior a la de inicio.";
+            throw new ApiException(422, message, Map.of("fecha_fin", List.of(message)));
+        }
         if (data.get("imagen") instanceof MultipartFile file) {
             data.put("imagen", storage.store(file, "uploads/imgevento", StorageService.Disk.PUBLIC));
+            storage.deleteUpload(event.get("imagen"));
         } else {
             data.remove("imagen");
         }
@@ -125,7 +132,9 @@ public class EventController {
         Map<String, Object> event = db.findOrFail("eventos", id);
         abortUnless(Users.id(event, "id_usuario") == auth.id() || auth.isAdmin(), 403);
         db.exec("DELETE FROM listado_evento WHERE id_evento = ?", id);
+        db.exec("DELETE FROM event_chat_messages WHERE event_id = ?", id);
         db.exec("DELETE FROM eventos WHERE id = ?", id);
+        storage.deleteUpload(event.get("imagen"));
         return Map.of("message", "Evento eliminado.");
     }
 
@@ -146,7 +155,8 @@ public class EventController {
 
     @GetMapping("/{id:\\d+}/participants")
     public Object participants(@PathVariable long id, AuthUser auth) {
-        db.findOrFail("eventos", id);
+        Map<String, Object> event = db.findOrFail("eventos", id);
+        abortUnless(Users.id(event, "id_usuario") == auth.id() || auth.isAdmin(), 403);
         return db.list("SELECT le.id, le.estado, u.id AS user_id, u.usuario, u.imagen, u.biografia FROM listado_evento AS le "
             + "JOIN usuarios AS u ON u.id = le.id_usuario WHERE le.id_evento = ? ORDER BY u.usuario", id);
     }

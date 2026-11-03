@@ -6,10 +6,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.CRC32;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,11 +23,15 @@ public class TokenService {
     static final String TOKENABLE_TYPE = "App\\Models\\ArtistUser";
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+    private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final Db db;
+    private final int lifetimeDays;
     private final SecureRandom random = new SecureRandom();
 
-    public TokenService(Db db) {
+    public TokenService(Db db, @Value("${artistapp.token-days:30}") int lifetimeDays) {
         this.db = db;
+        this.lifetimeDays = lifetimeDays;
     }
 
     public String create(long userId) {
@@ -40,8 +46,10 @@ public class TokenService {
         row.put("name", "artistapp-angular");
         row.put("token", sha256(plain.toString()));
         row.put("abilities", "[\"*\"]");
+        row.put("expires_at", LocalDateTime.now().plusDays(lifetimeDays));
         row.put("created_at", LocalDateTime.now());
         row.put("updated_at", LocalDateTime.now());
+        db.exec("DELETE FROM personal_access_tokens WHERE expires_at IS NOT NULL AND expires_at < ?", LocalDateTime.now());
         long id = db.insert("personal_access_tokens", row);
         return id + "|" + plain;
     }
@@ -62,13 +70,19 @@ public class TokenService {
             if (token == null) return null;
         }
         if (!TOKENABLE_TYPE.equals(token.get("tokenable_type"))) return null;
-        Object expires = token.get("expires_at");
-        if (expires != null && expires.toString().compareTo(LocalDateTime.now().toString().replace('T', ' ')) < 0) return null;
+        if (isExpired(token)) return null;
         Map<String, Object> user = db.find("usuarios", ((Number) token.get("tokenable_id")).longValue());
         if (user == null) return null;
         long tokenId = ((Number) token.get("id")).longValue();
         db.exec("UPDATE personal_access_tokens SET last_used_at = ? WHERE id = ?", LocalDateTime.now(), tokenId);
         return AuthUser.from(user, tokenId);
+    }
+
+    /** Los tokens anteriores a la caducidad no tienen expires_at: cuentan desde su creación. */
+    private boolean isExpired(Map<String, Object> token) {
+        LocalDateTime now = LocalDateTime.now();
+        if (token.get("expires_at") != null) return LocalDateTime.parse(token.get("expires_at").toString(), TIMESTAMP).isBefore(now);
+        return token.get("created_at") != null && LocalDateTime.parse(token.get("created_at").toString(), TIMESTAMP).plusDays(lifetimeDays).isBefore(now);
     }
 
     public void revoke(long tokenId) {

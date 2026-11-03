@@ -69,6 +69,11 @@ public class StorageService {
         }
     }
 
+    /** Borra una imagen subida. Las rutas heredadas (publicaciones/, usuarios/...) no están en este disco y se ignoran. */
+    public void deleteUpload(Object relative) {
+        if (relative instanceof String path && path.startsWith("uploads/")) delete(Disk.PUBLIC, path);
+    }
+
     public boolean exists(Disk disk, String relative) {
         try {
             Path target = path(disk, relative);

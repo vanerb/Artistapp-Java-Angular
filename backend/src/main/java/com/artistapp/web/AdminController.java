@@ -12,6 +12,7 @@ import com.artistapp.support.Input;
 import com.artistapp.support.Validation;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +99,12 @@ public class AdminController {
         Map<String, Object> data = v.validate();
         Object password = data.remove("password");
         if (password != null) data.put("contrasena", passwords.hash(password.toString()));
-        if (data.get("imagen") instanceof MultipartFile file) data.put("imagen", storage.store(file, "uploads/usuarios", StorageService.Disk.PUBLIC));
-        else data.remove("imagen");
+        if (data.get("imagen") instanceof MultipartFile file) {
+            data.put("imagen", storage.store(file, "uploads/usuarios", StorageService.Disk.PUBLIC));
+            storage.deleteUpload(db.value("SELECT imagen FROM usuarios WHERE id = ?", String.class, id));
+        } else {
+            data.remove("imagen");
+        }
         if (data.containsKey("id_tipo") && data.get("id_tipo") == null) data.remove("id_tipo");
         if (data.containsKey("biografia") && data.get("biografia") == null) data.put("biografia", "");
         db.update("usuarios", data, id);
@@ -116,7 +121,19 @@ public class AdminController {
         abortIf(db.exists("SELECT 1 FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto JOIN pedidos AS o ON o.id = d.id_pedido "
             + "WHERE p.id_usuario = ? AND o.id_usuario <> ? AND o.estado <> 'cancelado' AND d.recibido_confirmado_at IS NULL", id, id),
             422, "Esta cuenta tiene ventas sin entregar o sin confirmar. Resuélvelas o cancélalas antes de eliminarla.");
+        List<Object> uploads = new ArrayList<>();
+        for (String table : List.of("publicaciones", "eventos", "productos")) {
+            db.list("SELECT imagen FROM " + table + " WHERE id_usuario = ?", id).forEach(row -> uploads.add(row.get("imagen")));
+        }
+        uploads.add(db.value("SELECT imagen FROM usuarios WHERE id = ?", String.class, id));
+        List<Map<String, Object>> privateFiles = db.list("SELECT imagen_original, archivos FROM productos WHERE id_usuario = ?", id);
+        String email = db.value("SELECT correo FROM usuarios WHERE id = ?", String.class, id);
         tokens.revokeAll(id);
+        db.exec("DELETE FROM password_reset_tokens WHERE email = ?", email);
+        db.exec("DELETE FROM app_notifications WHERE user_id = ?", id);
+        db.exec("DELETE FROM direct_messages WHERE sender_id = ? OR recipient_id = ?", id, id);
+        db.exec("DELETE FROM publication_comments WHERE user_id = ? OR publication_id IN (SELECT p.id FROM publicaciones p WHERE p.id_usuario = ?)", id, id);
+        db.exec("DELETE FROM event_chat_messages WHERE user_id = ? OR event_id IN (SELECT e.id FROM eventos e WHERE e.id_usuario = ?)", id, id);
         List<Long> eventIds = db.ids("SELECT id FROM eventos WHERE id_usuario = ?", id);
         List<Long> productIds = db.ids("SELECT id FROM productos WHERE id_usuario = ?", id);
         List<Long> orderIds = db.ids("SELECT id FROM pedidos WHERE id_usuario = ?", id);
@@ -139,6 +156,11 @@ public class AdminController {
         db.exec("DELETE FROM eventos WHERE id_usuario = ?", id);
         db.exec("DELETE FROM productos WHERE id_usuario = ?", id);
         db.exec("DELETE FROM usuarios WHERE id = ?", id);
+        uploads.forEach(storage::deleteUpload);
+        for (Map<String, Object> files : privateFiles) {
+            storage.delete(StorageService.Disk.LOCAL, (String) files.get("imagen_original"));
+            if (!"Sin archivos".equals(files.get("archivos"))) storage.delete(StorageService.Disk.LOCAL, (String) files.get("archivos"));
+        }
         return Map.of("message", "Cuenta eliminada.");
     }
 }

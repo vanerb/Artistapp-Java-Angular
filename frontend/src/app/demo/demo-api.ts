@@ -326,6 +326,7 @@ export class DemoApi {
       const [id] = ctx.params;
       this.owner(this.db.findOrFail('publicaciones', id), auth);
       this.db.remove('megusta', m => m['id_publicacion'] === id);
+      this.db.remove('publication_comments', c => c['publication_id'] === id);
       this.db.remove('publicaciones', p => p['id'] === id);
       return { message: 'Publicación eliminada.' };
     });
@@ -440,6 +441,12 @@ export class DemoApi {
         nombre: 'sometimes|required|string|max:255', ubicacion: 'sometimes|required|string|max:255', link: 'sometimes|nullable|url|max:255',
         fecha_inicio: 'sometimes|required|date', fecha_fin: 'sometimes|required|date', imagen: 'nullable|image|max:8192'
       });
+      const start = data['fecha_inicio'] ?? event['fecha_inicio'];
+      const end = data['fecha_fin'] ?? event['fecha_fin'];
+      if (end < start) {
+        const message = 'La fecha de fin debe ser igual o posterior a la de inicio.';
+        fail(422, message, { fecha_fin: [message] });
+      }
       if (data['imagen'] instanceof File) data['imagen'] = await imageDataUrl(data['imagen']);
       else delete data['imagen'];
       if ('link' in data && data['link'] === null) data['link'] = '';
@@ -451,6 +458,7 @@ export class DemoApi {
       const [id] = ctx.params;
       this.owner(this.db.findOrFail('eventos', id), auth);
       this.db.remove('listado_evento', l => l['id_evento'] === id);
+      this.db.remove('event_chat_messages', m => m['event_id'] === id);
       this.db.remove('eventos', e => e['id'] === id);
       return { message: 'Evento eliminado.' };
     });
@@ -472,9 +480,9 @@ export class DemoApi {
     });
 
     this.on('GET', '/events/:id/participants', ctx => {
-      this.auth(ctx);
+      const auth = this.auth(ctx);
       const [id] = ctx.params;
-      this.db.findOrFail('eventos', id);
+      this.owner(this.db.findOrFail('eventos', id), auth);
       return this.db.t('listado_evento').filter(l => l['id_evento'] === id).map(l => {
         const user = this.db.user(l['id_usuario']);
         return { id: l['id'], estado: l['estado'], user_id: l['id_usuario'], usuario: user?.['usuario'], imagen: user?.['imagen'], biografia: user?.['biografia'] };
@@ -789,6 +797,7 @@ export class DemoApi {
       const auth = this.auth(ctx);
       const [productId] = ctx.params;
       const product = this.db.findOrFail('productos', productId);
+      if (product['id_usuario'] === auth['id']) fail(422, 'No puedes comprar tus propios productos.');
       if (product['cantidad'] < 1) fail(422, 'Este producto está agotado.');
       const cartId = this.cartId(auth['id']);
       const exists = this.db.t('cesta_producto').some(c => c['id_cesta'] === cartId && c['id_producto'] === productId);
@@ -1078,6 +1087,10 @@ export class DemoApi {
       const posts = ids('publicaciones');
       const carts = ids('cesta');
       this.db.remove('tokens', t => t['user_id'] === id);
+      this.db.remove('app_notifications', n => n['user_id'] === id);
+      this.db.remove('direct_messages', m => m['sender_id'] === id || m['recipient_id'] === id);
+      this.db.remove('publication_comments', c => c['user_id'] === id || posts.has(c['publication_id']));
+      this.db.remove('event_chat_messages', m => m['user_id'] === id || events.has(m['event_id']));
       this.db.remove('favoritos', f => f['id_usuario'] === id || f['id_usuariopin'] === id);
       this.db.remove('megusta', m => m['id_usuario'] === id || posts.has(m['id_publicacion']));
       this.db.remove('listado_evento', l => l['id_usuario'] === id || events.has(l['id_evento']));

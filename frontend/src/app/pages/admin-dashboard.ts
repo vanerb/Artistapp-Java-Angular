@@ -73,7 +73,7 @@ type Summary = {
       }
       .kicker {
         color: #7045d4;
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 850;
         letter-spacing: 0.15em;
       }
@@ -114,7 +114,7 @@ type Summary = {
       .metrics small {
         display: block;
         color: #77727e;
-        font-size: 8px;
+        font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.1em;
       }
@@ -183,7 +183,7 @@ type Summary = {
         font-size: 12px;
       }
       .resources small {
-        font-size: 10px;
+        font-size: 11px;
         color: #77727e;
         margin-top: 4px;
       }
@@ -209,7 +209,7 @@ type Summary = {
         font-size: 13px;
       }
       .alert-row a {
-        font-size: 10px;
+        font-size: 11px;
         color: #d9fa72;
         font-weight: 750;
         text-decoration: none;
