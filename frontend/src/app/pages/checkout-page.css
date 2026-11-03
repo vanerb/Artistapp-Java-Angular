@@ -1,0 +1,144 @@
+:host {
+  display: block;
+  color: #272432;
+}
+.checkout {
+  max-width: 1120px;
+  margin: auto;
+  padding: 42px 25px 90px;
+}
+.back {
+  color: #77727e;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 11px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 30px;
+  margin-top: 28px;
+}
+.form,
+.layout aside {
+  background: #fffdf9;
+  border: 1px solid #ece5de;
+  border-radius: 20px;
+  padding: clamp(22px, 4vw, 44px);
+}
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: #7045d4;
+  font-weight: 850;
+}
+.form h1 {
+  font-size: clamp(36px, 5vw, 54px);
+  letter-spacing: -0.07em;
+  margin: 10px 0;
+}
+.form > p {
+  font-size: 12px;
+  color: #77727e;
+  line-height: 1.7;
+  margin: 0 0 25px;
+}
+.form label {
+  display: block;
+  margin: 16px 0 7px;
+  font-size: 11px;
+  font-weight: 750;
+}
+.form input {
+  height: 48px;
+  width: 100%;
+  border: 1px solid #e5dfd7;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 14px;
+  font: 13px system-ui;
+}
+.form input:focus {
+  outline: none;
+  border-color: #7045d4;
+  box-shadow: 0 0 0 3px #7045d41c;
+}
+.safe-note {
+  display: flex;
+  gap: 12px;
+  background: #f0ecfb;
+  border-radius: 12px;
+  padding: 13px;
+  margin: 22px 0;
+}
+.safe-note span {
+  color: #7045d4;
+  font-size: 20px;
+}
+.safe-note p {
+  margin: 0;
+  color: #625c70;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.form button {
+  border: 0;
+  border-radius: 999px;
+  background: #7045d4;
+  color: white;
+  padding: 14px 20px;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.form button:disabled {
+  opacity: 0.6;
+}
+.form .error {
+  margin: 14px 0 0;
+  color: #a33b35;
+}
+.layout aside {
+  align-self: start;
+  background: #29253a;
+  color: white;
+}
+.layout aside .kicker {
+  color: #d9fa72;
+}
+.layout aside h2 {
+  font-size: 22px;
+  margin: 10px 0 20px;
+}
+.line,
+.total {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 11px;
+  margin: 13px 0;
+  color: #ded9e9;
+}
+.line strong,
+.total strong {
+  color: white;
+  white-space: nowrap;
+}
+.layout aside hr {
+  border-color: #ffffff2b;
+}
+.total {
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+}
+@media (max-width: 750px) {
+  .checkout {
+    padding: 30px 18px 60px;
+  }
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}

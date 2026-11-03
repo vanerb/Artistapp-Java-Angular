@@ -1,0 +1,63 @@
+<section class="checkout">
+  <a routerLink="/cesta" class="back">← Volver a la cesta</a>
+  <div class="layout">
+    <form class="form" (ngSubmit)="submit()">
+      <span class="kicker">UN PASO MÁS CERCA</span>
+      <h1>Finalizar pedido.</h1>
+      <p>En ArtistApp, cada compra apoya directamente a una persona creadora.</p>
+      <label for="name">Nombre para el envío</label
+      ><input
+        id="name"
+        name="nombre"
+        [(ngModel)]="form.nombre"
+        autocomplete="name"
+        required
+        placeholder="Nombre y apellidos"
+      /><label for="address">Dirección de entrega</label
+      ><input
+        id="address"
+        name="direccion"
+        [(ngModel)]="form.direccion"
+        autocomplete="street-address"
+        required
+        placeholder="Calle, número, piso, ciudad"
+      /><label for="phone">Teléfono de contacto</label
+      ><input
+        id="phone"
+        name="telefono"
+        [(ngModel)]="form.telefono"
+        autocomplete="tel"
+        type="tel"
+        required
+        placeholder="Tu teléfono"
+      />
+      <div class="safe-note">
+        <span>✳</span>
+        <p>El pago se coordina directamente con el artista. No almacenamos datos de tarjeta.</p>
+      </div>
+      <button [disabled]="busy()">
+        {{ busy() ? 'Creando pedido…' : 'Confirmar pedido ↗' }}
+      </button>
+      @if (message()) {
+        <p class="error">{{ message() }}</p>
+      }
+    </form>
+    <aside>
+      <span class="kicker">RESUMEN DEL PEDIDO</span>
+      <h2>Tu selección</h2>
+      @for (item of items(); track item.id) {
+        <div class="line">
+          <span>{{ item.nombre }}</span
+          ><strong>{{ item.precio | currency: 'EUR' }}</strong>
+        </div>
+      }
+      <hr />
+      <div class="line">
+        <span>Envío</span><strong>{{ shipping() | currency: 'EUR' }}</strong>
+      </div>
+      <div class="total">
+        <span>Total</span><strong>{{ total() | currency: 'EUR' }}</strong>
+      </div>
+    </aside>
+  </div>
+</section>

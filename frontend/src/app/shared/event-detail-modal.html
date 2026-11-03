@@ -1,0 +1,53 @@
+@if (event) {
+  <div class="backdrop" (click)="close.emit()">
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="event.nombre"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="close" aria-label="Cerrar" (click)="close.emit()">×</button>
+      <div class="cover">
+        <img [src]="image(event.imagen)" (error)="imageError($event)" [alt]="event.nombre" /><span
+          class="date"
+          >{{ event.fecha_inicio | date: 'd MMM yyyy' }}
+          @if (event.fecha_fin !== event.fecha_inicio) {
+            · {{ event.fecha_fin | date: 'd MMM yyyy' }}
+          }
+        </span>
+      </div>
+      <div class="body">
+        <span class="kicker">EVENTO DE {{ event.organizer_name || 'LA COMUNIDAD' }}</span>
+        <h1>{{ event.nombre }}</h1>
+        <p class="location">⌖ {{ event.ubicacion }}</p>
+        @if (event.link) {
+          <a class="external" [href]="event.link" target="_blank" rel="noopener"
+            >Más información del evento ↗</a
+          >
+        }
+        <p class="description">
+          Un encuentro creativo de ArtistApp. Consulta con la organización los detalles de acceso,
+          horarios y actividades.
+        </p>
+        <div class="actions">
+          @if (event.participation_status) {
+            <span class="participation">{{
+              participationLabel(event.participation_status)
+            }}</span>
+          } @else if (auth.isAuthenticated()) {
+            <button class="primary" (click)="join.emit(event)">Me interesa</button>
+          }
+          @if (canChat()) {
+            <a
+              class="secondary"
+              [routerLink]="['/mensajes/evento', event.id]"
+              (click)="close.emit()"
+              >Abrir chat del evento ↗</a
+            >
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+}

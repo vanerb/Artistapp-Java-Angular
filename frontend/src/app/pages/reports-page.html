@@ -1,0 +1,63 @@
+<section class="reports">
+  <span class="kicker">CUIDAMOS LA COMUNIDAD</span>
+  <h1>Informes.</h1>
+  <p>Cuéntanos qué ocurre para que el equipo pueda revisarlo.</p>
+  <button class="primary" (click)="formOpen.set(true)">Crear informe</button>
+  @if (message()) {
+    <p class="message" role="status">{{ message() }}</p>
+  }
+  <div class="list">
+    @for (report of reports(); track report.id) {
+      <article>
+        <header>
+          <strong>Perfil: {{ report.usuario_referenciado }}</strong
+          ><span>{{ report.estado }}</span>
+        </header>
+        <p>{{ report.informe }}</p>
+        <small>Enviado {{ report.fecha_publicacion || '' }}</small>
+        @if (report.estado === 'pendiente') {
+          <button class="remove" (click)="remove(report)">Cancelar solicitud</button>
+        }
+      </article>
+    } @empty {
+      <div class="empty">No tienes informes enviados.</div>
+    }
+  </div>
+  @if (formOpen()) {
+    <div class="backdrop" (click)="formOpen.set(false)">
+      <form class="modal" (ngSubmit)="submit()" (click)="$event.stopPropagation()">
+        <button type="button" class="close" (click)="formOpen.set(false)">×</button
+        ><span class="kicker">NUEVO INFORME</span>
+        <h2>¿Qué ha ocurrido?</h2>
+        <label
+          >Perfil<select name="target" [(ngModel)]="draft.id_usuarioreferenciado" required>
+            <option [ngValue]="0" disabled>Selecciona un perfil</option>
+            @for (user of users(); track user.id) {
+              <option [ngValue]="user.id">{{ user.usuario }}</option>
+            }
+          </select></label
+        ><label
+          >Descripción<textarea
+            name="report"
+            [(ngModel)]="draft.informe"
+            required
+            maxlength="255"
+          ></textarea></label
+        ><button class="primary" [disabled]="busy()">
+          {{ busy() ? 'Enviando…' : 'Enviar informe' }}
+        </button>
+      </form>
+    </div>
+  }
+  @if (confirmation()) {
+    <app-confirm-modal
+      [open]="true"
+      title="Cancelar informe"
+      [message]="confirmation()!.message"
+      confirmLabel="Cancelar informe"
+      tone="danger"
+      (cancel)="dismissConfirmation()"
+      (confirm)="confirmCancellation()"
+    />
+  }
+</section>

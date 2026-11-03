@@ -1,0 +1,65 @@
+<section class="page wrap">
+  <a routerLink="/tienda" class="back">← Seguir explorando</a>
+  <div class="head">
+    <div>
+      <span class="kicker">TU SELECCIÓN</span>
+      <h1>La cesta.</h1>
+    </div>
+    <span class="count"
+      >{{ items().length }} {{ items().length === 1 ? 'pieza' : 'piezas' }}</span
+    >
+  </div>
+  @if (busy()) {
+    <p class="empty">Preparando tu cesta…</p>
+  } @else if (!items().length) {
+    <div class="empty empty-card">
+      <span>✳</span>
+      <h2>Esta cesta pide un poco de arte.</h2>
+      <p>Descubre algo especial creado por la comunidad.</p>
+      <a routerLink="/tienda">Explorar la tienda ↗</a>
+    </div>
+  } @else {
+    <div class="layout">
+      <div class="items">
+        @for (item of items(); track item.id) {
+          <article class="item">
+            <img [src]="image(item.imagen)" [alt]="item.nombre" loading="lazy" />
+            <div class="detail">
+              <span class="kicker">POR {{ item.artist_name || 'ARTISTA' }}</span>
+              <h2>{{ item.nombre }}</h2>
+              <p>{{ item.descripcion }}</p>
+              <strong>{{ item.precio | currency: 'EUR' }}</strong>
+              @if (item.cantidad < 1) {
+                <b class="sold-out">Agotado: quítalo para poder continuar</b>
+              }
+            </div>
+            <button class="remove" (click)="remove(item)">Quitar</button>
+          </article>
+        }
+      </div>
+      <aside class="summary">
+        <span class="kicker">RESUMEN</span>
+        <h2>Tu pedido</h2>
+        <div>
+          <span>Subtotal</span><strong>{{ subtotal() | currency: 'EUR' }}</strong>
+        </div>
+        <div>
+          <span>Envío</span><strong>{{ shipping() | currency: 'EUR' }}</strong>
+        </div>
+        <hr />
+        <div class="total">
+          <span>Total</span><strong>{{ total() | currency: 'EUR' }}</strong>
+        </div>
+        <p>El envío cuesta 4 € cuando el pedido incluye piezas físicas.</p>
+        @if (hasSoldOut()) {
+          <p class="blocked">Quita los artículos agotados para continuar.</p>
+        } @else {
+          <a routerLink="/checkout">Continuar con el pedido ↗</a>
+        }
+      </aside>
+    </div>
+  }
+  @if (message()) {
+    <p class="message">{{ message() }}</p>
+  }
+</section>

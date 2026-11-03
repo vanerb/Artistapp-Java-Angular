@@ -1,0 +1,46 @@
+<section class="admin">
+  <span class="kicker">EL PULSO DE ARTISTAPP</span>
+  <h1>Panel de control.</h1>
+  <p>Una mirada rápida a lo que está pasando en la comunidad.</p>
+  @if (message()) {
+    <div class="message">{{ message() }}</div>
+  }
+  <div class="metrics">
+    <article>
+      <span>COMUNIDAD</span><strong>{{ stats().usuarios }}</strong
+      ><small>perfiles creativos</small><b>✳</b>
+    </article>
+    <article>
+      <span>OBRA PUBLICADA</span><strong>{{ stats().publicaciones }}</strong
+      ><small>publicaciones</small><b>◒</b>
+    </article>
+    <article>
+      <span>VENTA CREATIVA</span><strong>{{ stats().productos }}</strong
+      ><small>piezas en tienda</small><b>↗</b>
+    </article>
+    <article>
+      <span>VENTAS TOTALES</span><strong>{{ stats().ventas | currency: 'EUR' }}</strong
+      ><small>{{ stats().pedidos_pendientes }} pedidos activos</small><b>€</b>
+    </article>
+  </div>
+  <h2>Gestionar espacios</h2>
+  <div class="resources">
+    @for (item of resources; track item.path) {
+      <a [routerLink]="['/admin', item.path]"
+        ><span>{{ item.icon }}</span>
+        <div>
+          <strong>{{ item.name }}</strong
+          ><small>{{ item.description }}</small>
+        </div>
+        <b>↗</b></a
+      >
+    }
+  </div>
+  <div class="alert-row">
+    <div>
+      <span class="kicker">A TENER EN CUENTA</span
+      ><strong>{{ stats().informes_pendientes }} informes por revisar</strong>
+    </div>
+    <a routerLink="/admin/informes">Revisar cola →</a>
+  </div>
+</section>

@@ -270,6 +270,26 @@ class OrderFlowTest {
         assertThat(call(sellerA, "GET", "/auth/me", null).status).isEqualTo(401);
     }
 
+    @Test
+    void replacingOrDeletingAnImageRemovesTheOldFile() throws Exception {
+        ByteArrayOutputStream png = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB), "png", png);
+        Map<String, Object> created = json.readValue(multipart("/publications", Map.of("titulo", "t", "descripcion", "d", "id_categoria", "1"), "x.png", png.toByteArray()).body(), Map.class);
+        String first = (String) created.get("imagen");
+        long id = ((Number) created.get("id")).longValue();
+        assertThat(storage.exists(StorageService.Disk.PUBLIC, first)).isTrue();
+
+        HttpResponse<String> patched = multipart("/publications/" + id, Map.of("_method", "PATCH"), "y.png", png.toByteArray());
+        assertThat(patched.statusCode()).isEqualTo(200);
+        String second = (String) json.readValue(patched.body(), Map.class).get("imagen");
+        assertThat(second).isNotEqualTo(first);
+        assertThat(storage.exists(StorageService.Disk.PUBLIC, first)).isFalse();
+        assertThat(storage.exists(StorageService.Disk.PUBLIC, second)).isTrue();
+
+        assertThat(call(sellerA, "DELETE", "/publications/" + id, null).status).isEqualTo(200);
+        assertThat(storage.exists(StorageService.Disk.PUBLIC, second)).isFalse();
+    }
+
     // ---------------------------------------------------------------- utilidades
 
     private long user(int type) {
@@ -356,19 +376,23 @@ class OrderFlowTest {
     }
 
     private int upload(String filename, byte[] content) throws Exception {
+        return multipart("/publications", Map.of("titulo", "t", "descripcion", "d", "id_categoria", "1"), filename, content).statusCode();
+    }
+
+    private HttpResponse<String> multipart(String path, Map<String, String> fields, String filename, byte[] content) throws Exception {
         String boundary = "----test" + SEQUENCE.incrementAndGet();
         ByteArrayOutputStream body = new ByteArrayOutputStream();
-        for (Map.Entry<String, String> field : Map.of("titulo", "t", "descripcion", "d", "id_categoria", "1").entrySet()) {
+        for (Map.Entry<String, String> field : fields.entrySet()) {
             body.write(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + field.getKey() + "\"\r\n\r\n" + field.getValue() + "\r\n").getBytes(StandardCharsets.UTF_8));
         }
         body.write(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"imagen\"; filename=\"" + filename + "\"\r\nContent-Type: application/octet-stream\r\n\r\n").getBytes(StandardCharsets.UTF_8));
         body.write(content);
         body.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api/publications"))
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api" + path))
             .header("Authorization", "Bearer " + sellerA)
             .header("Content-Type", "multipart/form-data; boundary=" + boundary)
             .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray())).build();
-        return http.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
+        return http.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private Response call(String token, String method, String path, Map<String, ?> body) {

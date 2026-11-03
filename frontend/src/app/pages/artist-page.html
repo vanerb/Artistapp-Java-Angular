@@ -1,0 +1,272 @@
+<section class="artist">
+  @if (busy()) {
+    <p class="profile-loading-inline" role="status">Cargando perfil...</p>
+  }
+  @if (message()) {
+    <div class="profile-alert-backdrop" (click)="dismissMessage()">
+      <section
+        class="profile-alert"
+        role="alertdialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <button class="modal-close" aria-label="Cerrar" (click)="dismissMessage()">×</button
+        ><span class="kicker">AVISO</span>
+        <h2>{{ message().startsWith('No se pudo') ? 'No se pudo completar' : 'Hecho' }}</h2>
+        <p>{{ message() }}</p>
+        <button class="primary" (click)="dismissMessage()">Entendido</button>
+      </section>
+    </div>
+  }
+  <a routerLink="/descubrir" class="back">← Descubrir</a>
+  @if (user(); as artist) {
+    <header class="artist-head">
+      <img
+        class="artist-avatar"
+        [src]="image(artist.imagen)"
+        (error)="imageError($event)"
+        [alt]="artist.usuario"
+      />
+      <div>
+        <span class="kicker">TU ESPACIO CREATIVO</span>
+        <h1>{{ artist.usuario }}</h1>
+        <p>{{ artist.biografia || 'Artista de la comunidad ArtistApp.' }}</p>
+        <div class="community-stats">
+          <span class="artist-publication-count"
+            ><strong>{{ pagination().obras.total || artist.publicaciones?.length || 0 }}</strong
+            ><span>publicaciones</span></span
+          ><button type="button" (click)="openCommunity('seguidores')">
+            <strong>{{ artist.seguidores_count || 0 }}</strong
+            ><span>seguidores</span></button
+          ><button type="button" (click)="openCommunity('seguidos')">
+            <strong>{{ artist.seguidos_count || 0 }}</strong
+            ><span>seguidos</span>
+          </button>
+        </div>
+      </div>
+      <div class="artist-head-actions">
+        @if (canMessage(artist)) {
+          <a class="chat-link" [routerLink]="['/mensajes/artista', artist.id]"
+            >Chat con artista ↗</a
+          >
+        }
+        @if (auth.isAuthenticated()) {
+          @if (canFollow(artist)) {
+            <button [disabled]="busy()" (click)="follow()">Seguir</button>
+          } @else if (followed()) {
+            <button [disabled]="busy()" (click)="follow()">Dejar de seguir</button>
+          }
+        }
+      </div>
+    </header>
+    <nav aria-label="Secciones del perfil">
+      <button type="button" (click)="scrollTo('works')">
+        Obras {{ pagination().obras.total || artist.publicaciones?.length || 0 }}</button
+      ><button type="button" (click)="scrollTo('notices')">
+        Avisos {{ pagination().avisos.total || artist.avisos?.length || 0 }}</button
+      ><button type="button" (click)="scrollTo('events')">
+        Eventos {{ pagination().eventos.total || artist.eventos?.length || 0 }}
+      </button>
+    </nav>
+    <section id="works">
+      <h2>Obras</h2>
+      <div class="grid">
+        @for (item of artist.publicaciones; track item.id) {
+          <article>
+            <img
+              [src]="image(item.imagen, 'media/no-item.png')"
+              (error)="imageError($event, 'media/no-item.png')"
+              [alt]="item.titulo"
+            />
+            <h3>{{ item.titulo }}</h3>
+            <p>{{ item.descripcion }}</p>
+            <span>♥ {{ item.megusta }}</span
+            ><button class="detail-link" (click)="selectedPublication.set(item)">
+              Ver obra y comentarios
+            </button>
+          </article>
+        } @empty {
+          <p class="empty">Todavía no hay obras públicas.</p>
+        }
+      </div>
+      @if (pagination().obras.last_page > 1) {
+        <div class="artist-pagination">
+          <button
+            (click)="changePage('obras', pagination().obras.page - 1)"
+            [disabled]="pagination().obras.page <= 1 || busy()"
+          >
+            ← Anterior</button
+          ><span>{{ pagination().obras.page }} / {{ pagination().obras.last_page }}</span
+          ><button
+            (click)="changePage('obras', pagination().obras.page + 1)"
+            [disabled]="pagination().obras.page >= pagination().obras.last_page || busy()"
+          >
+            Siguiente →
+          </button>
+        </div>
+      }
+    </section>
+    <section id="notices">
+      <h2>Avisos</h2>
+      @for (item of artist.avisos; track item.id) {
+        <article class="notice">
+          <span class="kicker">{{ item.fecha_publicacion }}</span>
+          <h3>{{ item.titulo }}</h3>
+          <p>{{ item.aviso }}</p>
+        </article>
+      } @empty {
+        <p class="empty">No hay avisos publicados.</p>
+      }
+      @if (pagination().avisos.last_page > 1) {
+        <div class="artist-pagination">
+          <button
+            (click)="changePage('avisos', pagination().avisos.page - 1)"
+            [disabled]="pagination().avisos.page <= 1 || busy()"
+          >
+            ← Anterior</button
+          ><span>{{ pagination().avisos.page }} / {{ pagination().avisos.last_page }}</span
+          ><button
+            (click)="changePage('avisos', pagination().avisos.page + 1)"
+            [disabled]="pagination().avisos.page >= pagination().avisos.last_page || busy()"
+          >
+            Siguiente →
+          </button>
+        </div>
+      }
+    </section>
+    <section id="events">
+      <h2>Eventos</h2>
+      <div class="event-list">
+        @for (item of artist.eventos; track item.id) {
+          <article>
+            <img
+              [src]="image(item.imagen, 'media/no-item.png')"
+              (error)="imageError($event, 'media/no-item.png')"
+              [alt]="item.nombre"
+            />
+            <div>
+              <span class="kicker">{{ item.fecha_inicio | date: 'd MMM yyyy' }}</span>
+              <h3>{{ item.nombre }}</h3>
+              <p>{{ item.ubicacion }}</p>
+              @if (item.link) {
+                <a [href]="item.link" target="_blank" rel="noopener">Información del evento ↗</a>
+              }
+            </div>
+            <div class="event-actions">
+              @if (item.participation_status) {
+                <span class="participation">{{
+                  participationLabel(item.participation_status)
+                }}</span>
+              } @else {
+                @if (auth.isAuthenticated()) {
+                  <button (click)="join(item)">Me interesa</button>
+                }
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">No hay eventos publicados.</p>
+        }
+      </div>
+      @if (pagination().eventos.last_page > 1) {
+        <div class="artist-pagination">
+          <button
+            (click)="changePage('eventos', pagination().eventos.page - 1)"
+            [disabled]="pagination().eventos.page <= 1 || busy()"
+          >
+            ← Anterior</button
+          ><span>{{ pagination().eventos.page }} / {{ pagination().eventos.last_page }}</span
+          ><button
+            (click)="changePage('eventos', pagination().eventos.page + 1)"
+            [disabled]="pagination().eventos.page >= pagination().eventos.last_page || busy()"
+          >
+            Siguiente →
+          </button>
+        </div>
+      }
+    </section>
+  } @else {
+    <p class="empty">{{ message() || 'Cargando perfil…' }}</p>
+  }
+  @if (communityTarget(); as community) {
+    <div class="modal-backdrop" (click)="communityTarget.set(null)">
+      <section
+        class="profile-modal community-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Comunidad"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span class="kicker">TU COMUNIDAD</span>
+            <h2>{{ community === 'seguidores' ? 'Seguidores' : 'Seguidos' }}</h2>
+            <p>Personas conectadas con tu espacio creativo.</p>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Cerrar"
+            (click)="communityTarget.set(null)"
+          >
+            ×
+          </button>
+        </header>
+        <nav class="community-switch">
+          <button
+            [class.selected]="community === 'seguidores'"
+            (click)="openCommunity('seguidores')"
+          >
+            Seguidores <b>{{ user()?.seguidores_count || 0 }}</b></button
+          ><button
+            [class.selected]="community === 'seguidos'"
+            (click)="openCommunity('seguidos')"
+          >
+            Seguidos <b>{{ user()?.seguidos_count || 0 }}</b>
+          </button>
+        </nav>
+        <div class="community-list">
+          @for (person of communityUsers(); track person.id) {
+            <a [routerLink]="['/artistas', person.id]" (click)="communityTarget.set(null)"
+              ><img
+                [src]="image(person.imagen)"
+                (error)="imageError($event)"
+                [alt]="person.usuario"
+              /><span
+                ><strong>{{ person.usuario }}</strong
+                ><small>{{ person.biografia || 'Perfil de la comunidad' }}</small></span
+              ><span class="view-profile">Ver perfil ↗</span></a
+            >
+          } @empty {
+            @if (communityBusy()) {
+              <p class="empty">Cargando perfiles…</p>
+            } @else {
+              <p class="empty">
+                {{
+                  community === 'seguidores'
+                    ? 'Todavía no tiene seguidores.'
+                    : 'Todavía no sigue a ningún perfil.'
+                }}
+              </p>
+            }
+          }
+        </div>
+        @if (communityPage() < communityLastPage()) {
+          <button
+            class="community-more"
+            [disabled]="communityBusy()"
+            (click)="loadMoreCommunity()"
+          >
+            {{ communityBusy() ? 'Cargando…' : 'Ver más' }}
+          </button>
+        }
+      </section>
+    </div>
+  }
+  @if (selectedPublication(); as publication) {
+    <app-publication-detail-modal
+      [publication]="publication"
+      (close)="selectedPublication.set(null)"
+    />
+  }
+</section>

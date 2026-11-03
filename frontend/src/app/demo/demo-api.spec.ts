@@ -97,6 +97,16 @@ describe('DemoApi: pedidos con varios vendedores', () => {
     expect((await view(id)).created_at).toBeTruthy();
   });
 
+  it('sigue funcionando con los datos guardados por versiones anteriores de la demo', async () => {
+    const { id } = await order(PHYSICAL_B);
+    const detail = store.t('detalles_pedido').find(d => d['id_pedido'] === id)!;
+    delete detail['nombre_producto'];
+    delete detail['precio_unitario'];
+    const item = await line(id, PHYSICAL_B);
+    expect(item.nombre).toBe(store.find('productos', PHYSICAL_B)!['nombre']);
+    expect(item.precio).toBe(store.find('productos', PHYSICAL_B)!['precio']);
+  });
+
   it('libera cada archivo digital cuando lo entrega su vendedor', async () => {
     const digital = store.t('productos').find(p => p['id_tipo'] === 2 && p['id_usuario'] === ARTIST)!;
     digital['archivos'] = { name: 'obra.txt', type: 'text/plain', data: null };

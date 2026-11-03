@@ -1,0 +1,39 @@
+<section class="notices">
+  <span class="kicker">CENTRO DE ACTIVIDAD</span>
+  <header>
+    <div>
+      <h1>Avisos.</h1>
+      <p>Novedades de artistas que sigues y mensajes importantes de ArtistApp.</p>
+    </div>
+    @if (unread()) {
+      <button (click)="readAll()">Marcar todo como leído</button>
+    }
+  </header>
+  @if (message()) {
+    <p class="message">{{ message() }}</p>
+  }
+  @if (busy()) {
+    <p class="empty">Cargando avisos…</p>
+  } @else {
+    <div class="list">
+      @for (item of items(); track item.id) {
+        <article [class.unread]="!item.read_at">
+          <span class="icon">{{ icon(item.type) }}</span>
+          <div>
+            <span class="date">{{ item.created_at | date: 'd MMM yyyy · HH:mm' }}</span>
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.message }}</p>
+            <a [routerLink]="item.link || '/avisos'" (click)="markRead(item)">Abrir ↗</a>
+          </div>
+          @if (!item.read_at) {
+            <span class="dot" aria-label="No leído"></span>
+          }
+        </article>
+      } @empty {
+        <div class="empty">
+          No tienes avisos todavía. Aquí verás novedades y actividad relevante.
+        </div>
+      }
+    </div>
+  }
+</section>

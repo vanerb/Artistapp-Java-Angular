@@ -1,0 +1,55 @@
+<section class="chat">
+  <header>
+    <div>
+      <span class="kicker">{{
+        mode === 'event' ? 'CONVERSACIÓN DEL EVENTO' : 'MENSAJES DIRECTOS'
+      }}</span>
+      <h2>{{ title || 'Chat' }}</h2>
+      <p>
+        {{
+          mode === 'event'
+            ? 'Espacio privado para la organización y participantes aceptados.'
+            : 'Conversa directamente con este artista.'
+        }}
+      </p>
+    </div>
+    <button
+      type="button"
+      class="refresh"
+      aria-label="Actualizar mensajes"
+      (click)="load()"
+    ></button>
+  </header>
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  <div class="messages" #scrollBox>
+    @for (message of messages(); track message.id) {
+      <article [class.mine]="isMine(message)">
+        <img
+          [src]="image(message.sender_image || message.imagen)"
+          [alt]="message.sender_name || message.usuario || 'Usuario'"
+        />
+        <div>
+          <strong>{{ isMine(message) ? 'Tú' : message.sender_name || message.usuario }}</strong>
+          <p>{{ message.body }}</p>
+          <time>{{ message.created_at | date: 'd MMM · HH:mm' }}</time>
+        </div>
+      </article>
+    } @empty {
+      <div class="empty">Todavía no hay mensajes. ¡Saluda y empieza la conversación!</div>
+    }
+  </div>
+  <form (ngSubmit)="send()">
+    <textarea
+      name="body"
+      [(ngModel)]="draft"
+      maxlength="1000"
+      placeholder="Escribe un mensaje…"
+      required
+    ></textarea
+    ><button [disabled]="sending() || !draft.trim()">
+      {{ sending() ? 'Enviando…' : 'Enviar ↗' }}
+    </button>
+  </form>
+</section>

@@ -1,0 +1,128 @@
+:host {
+  display: block;
+  color: #272432;
+}
+.reports {
+  max-width: 920px;
+  margin: auto;
+  padding: 52px 24px 90px;
+}
+.kicker {
+  color: #7045d4;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  font-weight: 850;
+}
+.reports h1 {
+  font-size: clamp(42px, 6vw, 64px);
+  letter-spacing: -0.07em;
+  margin: 10px 0;
+}
+.reports > p {
+  color: #77727e;
+  font-size: 13px;
+}
+.primary {
+  border: 0;
+  border-radius: 999px;
+  background: #7045d4;
+  color: white;
+  padding: 12px 18px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.list {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.list article {
+  padding: 17px;
+  background: #fffdf9;
+  border: 1px solid #ece5de;
+  border-radius: 14px;
+}
+.list header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.list header span,
+.list small {
+  color: #77727e;
+  font-size: 11px;
+}
+.list p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.remove {
+  float: right;
+  border: 0;
+  background: #fbe5e2;
+  color: #9b463d;
+  padding: 8px 12px;
+  border-radius: 99px;
+  font-weight: 700;
+}
+.empty {
+  padding: 35px;
+  text-align: center;
+  color: #77727e;
+  background: #fffdf9;
+  border-radius: 14px;
+}
+.message {
+  padding: 12px;
+  background: #eef5de;
+  border-radius: 10px;
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: #211c2cb8;
+}
+.modal {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 28px;
+  border-radius: 20px;
+  background: #fffdf9;
+  display: grid;
+  gap: 13px;
+}
+.modal h2 {
+  margin: 0;
+  font-size: 28px;
+}
+.modal label {
+  display: grid;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 750;
+}
+.modal select,
+.modal textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5dfd7;
+  border-radius: 10px;
+  background: white;
+  font: 13px system-ui;
+}
+.modal textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.close {
+  position: absolute;
+  right: 15px;
+  top: 12px;
+  border: 0;
+  background: none;
+  font-size: 26px;
+}

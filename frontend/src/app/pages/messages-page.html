@@ -1,0 +1,55 @@
+<main class="inbox">
+  <span class="kicker">TU COMUNIDAD</span>
+  <h1>Mensajes</h1>
+  <p class="intro">
+    Tus conversaciones con artistas y los grupos de eventos, reunidos en un solo lugar.
+  </p>
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  <section>
+    <div class="section-head">
+      <div>
+        <span class="kicker">UNO A UNO</span>
+        <h2>Artistas</h2>
+      </div>
+      <span class="count">{{ direct().length }}</span>
+    </div>
+    <div class="list">
+      @for (chat of direct(); track chat.id) {
+        <a class="row" [routerLink]="['/mensajes/artista', chat.id]"
+          ><img [src]="image(chat.image)" [alt]="chat.name" /><span class="copy"
+            ><strong>{{ chat.name }}</strong
+            ><span>{{ chat.last_message || 'Empieza una conversación' }}</span></span
+          ><time>{{ chat.updated_at | date: 'd MMM, HH:mm' }}</time
+          ><b>›</b></a
+        >
+      } @empty {
+        <p class="empty">Tus conversaciones con artistas aparecerán aquí.</p>
+      }
+    </div>
+  </section>
+  <section>
+    <div class="section-head">
+      <div>
+        <span class="kicker">EN COMUNIDAD</span>
+        <h2>Eventos</h2>
+      </div>
+      <span class="count">{{ events().length }}</span>
+    </div>
+    <div class="list">
+      @for (chat of events(); track chat.id) {
+        <a class="row" [routerLink]="['/mensajes/evento', chat.id]"
+          ><img [src]="image(chat.image, 'media/no-item.png')" [alt]="chat.name" /><span
+            class="copy"
+            ><strong>{{ chat.name }}</strong
+            ><span>{{ chat.last_message || 'El grupo todavía no tiene mensajes' }}</span></span
+          ><time>{{ chat.updated_at | date: 'd MMM, HH:mm' }}</time
+          ><b>›</b></a
+        >
+      } @empty {
+        <p class="empty">Los chats de los eventos en los que participas aparecerán aquí.</p>
+      }
+    </div>
+  </section>
+</main>
