@@ -113,6 +113,9 @@ public class AdminController {
         abortUnless(auth.isAdmin(), 403);
         abortIf(id == auth.id(), 422, "No puedes eliminar tu propia cuenta de administración.");
         abortUnless(db.exists("SELECT 1 FROM usuarios WHERE id = ?", id), 404);
+        abortIf(db.exists("SELECT 1 FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto JOIN pedidos AS o ON o.id = d.id_pedido "
+            + "WHERE p.id_usuario = ? AND o.id_usuario <> ? AND o.estado <> 'cancelado' AND d.recibido_confirmado_at IS NULL", id, id),
+            422, "Esta cuenta tiene ventas sin entregar o sin confirmar. Resuélvelas o cancélalas antes de eliminarla.");
         tokens.revokeAll(id);
         List<Long> eventIds = db.ids("SELECT id FROM eventos WHERE id_usuario = ?", id);
         List<Long> productIds = db.ids("SELECT id FROM productos WHERE id_usuario = ?", id);
@@ -125,8 +128,11 @@ public class AdminController {
         if (!productIds.isEmpty()) db.exec("DELETE FROM cesta_producto WHERE id_producto IN (" + Db.marks(productIds) + ")", productIds.toArray());
         db.exec("DELETE FROM cesta_producto WHERE id_cesta IN (SELECT id FROM cesta WHERE id_usuario = ?)", id);
         db.exec("DELETE FROM cesta WHERE id_usuario = ?", id);
+        // Las compras activas de la cuenta devuelven su stock; las ventas a terceros se conservan en el historial del comprador.
+        for (Long productId : db.ids("SELECT d.id_producto FROM detalles_pedido AS d JOIN pedidos AS o ON o.id = d.id_pedido WHERE o.id_usuario = ? AND o.estado <> 'cancelado' AND d.estado_envio <> 'entregado'", id)) {
+            db.exec("UPDATE productos SET cantidad = cantidad + 1 WHERE id = ?", productId);
+        }
         if (!orderIds.isEmpty()) db.exec("DELETE FROM detalles_pedido WHERE id_pedido IN (" + Db.marks(orderIds) + ")", orderIds.toArray());
-        if (!productIds.isEmpty()) db.exec("DELETE FROM detalles_pedido WHERE id_producto IN (" + Db.marks(productIds) + ")", productIds.toArray());
         db.exec("DELETE FROM pedidos WHERE id_usuario = ?", id);
         db.exec("DELETE FROM avisos WHERE id_usuario = ?", id);
         db.exec("DELETE FROM publicaciones WHERE id_usuario = ?", id);

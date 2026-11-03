@@ -12,14 +12,16 @@ type Order = {
   total_vendedor?: number | string;
   estado: string;
   direccion: string;
-  fecha?: string;
+  telefono?: string;
+  created_at?: string | null;
   pago: number | string;
   productos: {
     id: number;
     nombre: string;
-    imagen: string;
+    imagen: string | null;
     precio: number | string;
-    id_tipo: number;
+    id_tipo: number | null;
+    seller_name?: string | null;
     detalle_id: number;
     estado_envio: string;
     recibido_confirmado_at: string | null;
@@ -42,42 +44,57 @@ type Order = {
             <div>
               <span class="kicker">PEDIDO #{{ order.id }}</span>
               <h2>{{ received() ? 'Comprador: ' + (order.buyer_name || 'Cliente') : order.nombre }}</h2>
+              @if (order.created_at) {
+                <time class="date">{{ orderDate(order) | date: 'd MMM yyyy · HH:mm' }}</time>
+              }
             </div>
             <span
               class="status"
               [class.sent]="order.estado === 'enviado'"
               [class.done]="order.estado === 'entregado'"
+              [class.cancelled]="order.estado === 'cancelado'"
               >{{ statusLabel(order.estado) }}</span
             >
           </header>
           <div class="products">
-            @for (product of order.productos; track product.id) {
+            @for (product of order.productos; track product.detalle_id) {
               <div>
                 <img [src]="image(product.imagen)" [alt]="product.nombre" loading="lazy" />
                 <span>
                   {{ product.nombre }}
-                  <small class="item-status">{{ statusLabel(product.estado_envio) }}{{ product.recibido_confirmado_at ? ' · Recepción confirmada' : '' }}</small>
+                  @if (!received() && product.seller_name) {
+                    <small class="seller">Vende {{ product.seller_name }}</small>
+                  }
+                  <small class="item-status">{{ itemLabel(order, product) }}</small>
                 </span>
                 <strong>{{ product.precio | currency: 'EUR' }}</strong>
                 @if (!received() && !auth.isAdmin() && order.estado !== 'cancelado' && product.estado_envio === 'entregado' && !product.recibido_confirmado_at) {
                   <button class="confirm-received" (click)="confirmReceived(order, product)">Confirmar recepción</button>
                 }
-                @if (!received() && product.id_tipo === 2 && order.estado === 'entregado') {
+                @if (!received() && product.id_tipo === 2 && order.estado !== 'cancelado' && product.estado_envio === 'entregado') {
                   <button (click)="download(order, product)">Descargar</button>
                 }
               </div>
             }
           </div>
           <footer>
-            <span>{{ received() ? 'Entrega a: ' + order.nombre + ' · ' + order.direccion : order.direccion }}</span
+            <span>{{ received() ? 'Entrega a: ' + order.nombre + ' · ' + order.direccion + (order.telefono ? ' · Tel. ' + order.telefono : '') : order.direccion }}</span
             ><strong>{{ (received() ? (order.total_vendedor ?? 0) : order.pago) | currency: 'EUR' }}</strong>
             @if (auth.isAdmin() || received()) {
-              <select #state [value]="order.productos[0]?.estado_envio || 'preparando'" (change)="status(order, state.value)">
-                <option value="preparando">Preparando</option>
-                <option value="enviado">Enviado</option>
-                <option value="entregado">Entregado</option>
+              <select
+                #state
+                [attr.aria-label]="'Estado del pedido ' + order.id"
+                [disabled]="locked(order)"
+                (change)="status(order, state)"
+              >
+                @if (showsMixedState(order)) {
+                  <option value="mixto" disabled [selected]="true">Varios estados</option>
+                }
+                <option value="preparando" [selected]="selectedState(order) === 'preparando'">Preparando</option>
+                <option value="enviado" [selected]="selectedState(order) === 'enviado'">Enviado</option>
+                <option value="entregado" [selected]="selectedState(order) === 'entregado'">Entregado</option>
                 @if (auth.isAdmin()) {
-                  <option value="cancelado">Cancelado</option>
+                  <option value="cancelado" [selected]="selectedState(order) === 'cancelado'">Cancelado</option>
                 }
               </select>
             } @else if (!received() && order.estado === 'preparando') {
@@ -91,6 +108,9 @@ type Order = {
         </div>
       }
     </div>
+    @if (hasMore()) {
+      <button class="more" [disabled]="busy()" (click)="loadMore()">{{ busy() ? 'Cargando…' : 'Ver más pedidos' }}</button>
+    }
     @if (confirmation()) {
       <app-confirm-modal
         [open]="true"
@@ -165,6 +185,33 @@ type Order = {
       .status.done {
         background: #e8f3d4;
         color: #546d22;
+      }
+      .status.cancelled {
+        background: #fbe5e2;
+        color: #9b463d;
+      }
+      .date {
+        display: block;
+        color: #77727e;
+        font-size: 11px;
+      }
+      .seller {
+        display: block;
+        margin-top: 3px;
+        color: #7045d4;
+        font-size: 10px;
+      }
+      .more {
+        display: block;
+        margin: 18px auto 0;
+        border: 1px solid #e4ded6;
+        background: #fffdf9;
+        color: #272432;
+        border-radius: 99px;
+        padding: 10px 18px;
+        font-size: 12px;
+        font-weight: 750;
+        cursor: pointer;
       }
       .products {
         display: grid;
@@ -263,17 +310,36 @@ export class OrdersPage {
   readonly received = computed(() => this.router.url.split('?')[0] === '/pedidos-recibidos');
   readonly orders = signal<Order[]>([]);
   readonly busy = signal(true);
+  readonly hasMore = signal(false);
   readonly message = signal('');
   readonly confirmation = signal<{ title: string; message: string } | null>(null);
   private pendingAction: (() => void) | null = null;
+  private page = 1;
   constructor() {
     this.load();
   }
+  /** Recarga tantas páginas como hubiera abiertas, para no perder de vista el pedido que se acaba de cambiar. */
   load() {
+    const pages = this.page;
+    this.page = 1;
+    this.fetch(pages);
+  }
+  loadMore() {
+    this.page += 1;
+    this.fetch(1, true);
+  }
+  private fetch(pagesToReload: number, append = false) {
     this.busy.set(true);
-    this.api.get<{ data: Order[] }>(this.received() ? '/orders/received' : '/orders').subscribe({
+    this.api.get<{ data: Order[]; current_page: number; last_page: number }>(this.received() ? '/orders/received' : '/orders', { page: this.page }).subscribe({
       next: (r) => {
-        this.orders.set(r.data ?? []);
+        this.orders.update((list) => (append || this.page > 1 ? [...list, ...(r.data ?? [])] : (r.data ?? [])));
+        const more = (r.current_page ?? 1) < (r.last_page ?? 1);
+        this.hasMore.set(more);
+        if (more && pagesToReload > 1) {
+          this.page += 1;
+          this.fetch(pagesToReload - 1, true);
+          return;
+        }
         this.busy.set(false);
       },
       error: (e) => {
@@ -282,19 +348,40 @@ export class OrdersPage {
       },
     });
   }
-  status(order: Order, state: string) {
+  status(order: Order, select: HTMLSelectElement) {
     this.api
-      .patch(`/orders/${order.id}/status`, { estado: state })
+      .patch(`/orders/${order.id}/status`, { estado: select.value })
       .subscribe({
         next: () => {
-          this.message.set('Estado de tus artículos actualizado.');
+          this.message.set(this.auth.isAdmin() && !this.received() ? 'Estado del pedido actualizado.' : 'Estado de tus artículos actualizado.');
           this.load();
         },
         error: (e) => {
+          // Si se rechaza el cambio, el selector vuelve al estado real.
+          select.value = this.selectedState(order);
           this.message.set(e.error?.message ?? 'No se pudo cambiar el estado.');
-          this.load();
         },
       });
+  }
+  /** En "Pedidos recibidos" el vendedor gestiona sus artículos; en la vista de admin, el pedido entero. */
+  selectedState(order: Order): string {
+    if (this.showsMixedState(order)) return 'mixto';
+    if (order.estado === 'cancelado' && !this.received()) return 'cancelado';
+    return order.productos[0]?.estado_envio || 'preparando';
+  }
+  showsMixedState(order: Order): boolean {
+    return !this.received() && order.estado !== 'cancelado' && new Set(order.productos.map((p) => p.estado_envio)).size > 1;
+  }
+  locked(order: Order): boolean {
+    return order.estado === 'cancelado' || (order.productos.length > 0 && order.productos.every((p) => p.recibido_confirmado_at));
+  }
+  orderDate(order: Order): string {
+    return (order.created_at ?? '').replace(' ', 'T');
+  }
+  itemLabel(order: Order, product: Order['productos'][number]): string {
+    if (product.recibido_confirmado_at) return 'Recibido';
+    if (order.estado === 'cancelado') return 'Cancelado';
+    return this.statusLabel(product.estado_envio === 'entregado' ? 'marcado_entregado' : product.estado_envio);
   }
   confirmReceived(order: Order, product: Order['productos'][number]) {
     this.api.patch(`/orders/${order.id}/items/${product.detalle_id}/confirm-received`, {}).subscribe({
@@ -309,7 +396,8 @@ export class OrdersPage {
     const labels: Record<string, string> = {
       preparando: 'Preparando',
       enviado: 'Enviado',
-      entregado: 'Marcado como entregado',
+      entregado: 'Entregado',
+      marcado_entregado: 'Entregado por el vendedor, pendiente de confirmar',
       pendiente_confirmacion: 'Pendiente de confirmar recepción',
       entrega_parcial: 'Entrega parcial',
       cancelado: 'Cancelado',
@@ -320,10 +408,8 @@ export class OrdersPage {
     this.pendingAction = () =>
       this.api.post(`/orders/${order.id}/cancel`, {}).subscribe({
         next: () => {
-          this.orders.update((list) =>
-            list.map((item) => (item.id === order.id ? { ...item, estado: 'cancelado' } : item)),
-          );
           this.message.set('Pedido cancelado.');
+          this.load();
         },
         error: (e) => this.message.set(e.error?.message ?? 'No se pudo cancelar.'),
       });
@@ -343,18 +429,20 @@ export class OrdersPage {
   }
   download(order: Order, product: Order['productos'][number]) {
     this.api.download(`/orders/${order.id}/products/${product.id}/download`).subscribe({
-      next: (file) => {
-        const url = URL.createObjectURL(file);
+      next: (response) => {
+        const url = URL.createObjectURL(response.body!);
         const link = document.createElement('a');
+        // El archivo se guarda con el nombre del producto y la extensión real.
+        const extension = /\.[a-z0-9]+(?=["';\s]|$)/i.exec(response.headers.get('Content-Disposition') ?? '')?.[0] ?? '';
         link.href = url;
-        link.download = product.nombre;
+        link.download = product.nombre + extension;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       },
       error: () => this.message.set('No se ha podido descargar este archivo.'),
     });
   }
-  image(path: string) {
-    return assetUrl(path);
+  image(path: string | null) {
+    return assetUrl(path ?? undefined, 'media/no-item.png');
   }
 }

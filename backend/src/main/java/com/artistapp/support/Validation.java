@@ -1,5 +1,7 @@
 package com.artistapp.support;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
@@ -12,6 +14,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -21,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class Validation {
     public static final Pattern STRONG_PASSWORD = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$");
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
-    private static final Set<String> IMAGE_TYPES = Set.of("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg");
+    private static final Set<String> IMAGE_TYPES = Set.of("jpg", "jpeg", "png", "gif", "bmp", "webp");
 
     private final Input input;
     private final Db db;
@@ -125,7 +129,7 @@ public class Validation {
                 MultipartFile upload = input.file(name);
                 if (upload == null) return "El campo " + label() + " debe ser un archivo.";
                 String extension = extension(upload.getOriginalFilename());
-                if (image && !IMAGE_TYPES.contains(extension)) return "El campo " + label() + " debe ser una imagen.";
+                if (image && (!IMAGE_TYPES.contains(extension) || !isImage(upload))) return "El campo " + label() + " debe ser una imagen.";
                 if (mimes != null && !mimes.contains(extension)) return "El campo " + label() + " debe ser de tipo: " + String.join(", ", mimes) + ".";
                 if (max != null && upload.getSize() > max * 1024L) return "El campo " + label() + " no debe superar los " + max + " KB.";
                 data.put(name, upload);
@@ -171,6 +175,15 @@ public class Validation {
 
         private String label() {
             return name.replace('_', ' ');
+        }
+    }
+
+    /** Comprueba el contenido real del archivo: la extensión la elige quien lo sube. */
+    private static boolean isImage(MultipartFile file) {
+        try (InputStream content = file.getInputStream(); ImageInputStream stream = ImageIO.createImageInputStream(content)) {
+            return stream != null && ImageIO.getImageReaders(stream).hasNext();
+        } catch (IOException e) {
+            return false;
         }
     }
 

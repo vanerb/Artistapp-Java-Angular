@@ -2,7 +2,7 @@ import { DemoStore, Row, fail } from './demo-store';
 
 const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const IMAGE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+const IMAGE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 export const PASSWORD_MESSAGE = 'La contraseña debe incluir minúsculas, mayúsculas y números.';
 
 export interface RequestData {

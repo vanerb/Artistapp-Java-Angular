@@ -21,7 +21,7 @@ type Field = { key: string; label: string; type?: string; required?: boolean };
           <p>{{ config.subtitle }}</p>
         </div>
         <div class="head-actions">
-          @if (config.fields.length) {
+          @if (config.fields.length && resource !== 'pedidos') {
             <button class="create-button" (click)="openCreate()">
               Crear {{ config.singular }}
             </button>
@@ -57,18 +57,32 @@ type Field = { key: string; label: string; type?: string; required?: boolean };
                     } @else if (
                       column === 'estado' && (resource === 'pedidos' || resource === 'informes')
                     ) {
-                      <select [value]="row[column]" (change)="status(row, readValue($event))">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="en revisión">En revisión</option>
-                        <option value="preparando">Preparando</option>
-                        <option value="enviado">Enviado</option>
-                        <option value="entregado">Entregado</option>
-                        <option value="resuelta">Resuelta</option>
-                        <option value="descartada">Descartada</option>
-                        <option value="cancelado">Cancelado</option>
+                      <select
+                        #state
+                        [attr.aria-label]="'Estado de ' + config.singular + ' ' + row.id"
+                        [disabled]="resource === 'pedidos' && (row[column] === 'cancelado' || row[column] === 'entregado')"
+                        (change)="status(row, state)"
+                      >
+                        @if (resource === 'pedidos') {
+                          @if (row[column] === 'entrega_parcial') {
+                            <option value="entrega_parcial" disabled [selected]="true">Entrega parcial</option>
+                          }
+                          @if (row[column] === 'pendiente_confirmacion') {
+                            <option value="pendiente_confirmacion" disabled [selected]="true">Pendiente de confirmar</option>
+                          }
+                          <option value="preparando" [selected]="row[column] === 'preparando'">Preparando</option>
+                          <option value="enviado" [selected]="row[column] === 'enviado'">Enviado</option>
+                          <option value="entregado" [selected]="row[column] === 'entregado'">Entregado</option>
+                          <option value="cancelado" [selected]="row[column] === 'cancelado'">Cancelado</option>
+                        } @else {
+                          <option value="pendiente" [selected]="row[column] === 'pendiente'">Pendiente</option>
+                          <option value="en revisión" [selected]="row[column] === 'en revisión'">En revisión</option>
+                          <option value="resuelta" [selected]="row[column] === 'resuelta'">Resuelta</option>
+                          <option value="descartada" [selected]="row[column] === 'descartada'">Descartada</option>
+                        }
                       </select>
                     } @else {
-                      <span class="cell">{{ format(row[column]) }}</span>
+                      <span class="cell">{{ column === 'pago' ? (row[column] | currency: 'EUR') : format(row[column]) }}</span>
                     }
                   </td>
                 }
@@ -604,6 +618,8 @@ export class AdminResource {
     cantidad: 'Stock',
     estado: 'Estado',
     pago: 'Importe',
+    buyer_name: 'Comprador',
+    telefono: 'Teléfono',
     direccion: 'Dirección',
     aviso: 'Aviso',
     informe: 'Informe',
@@ -930,16 +946,20 @@ export class AdminResource {
         error: (e) => this.message.set(e.error?.message ?? 'No se pudo cambiar la visibilidad.'),
       });
   }
-  status(row: any, value: string) {
+  status(row: any, select: HTMLSelectElement) {
     const path = this.resource === 'pedidos' ? `/orders/${row.id}/status` : `/reports/${row.id}`;
     this.api
-      .patch(path, { estado: value })
+      .patch<{ estado: string }>(path, { estado: select.value })
       .subscribe({
-        next: () =>
+        // El servidor decide el estado final: en pedidos puede ser "pendiente de confirmar".
+        next: (r) =>
           this.rows.update((list) =>
-            list.map((item) => (item.id === row.id ? { ...item, estado: value } : item)),
+            list.map((item) => (item.id === row.id ? { ...item, estado: r.estado } : item)),
           ),
-        error: (e) => this.message.set(e.error?.message ?? 'No se pudo cambiar el estado.'),
+        error: (e) => {
+          select.value = row.estado;
+          this.message.set(e.error?.message ?? 'No se pudo cambiar el estado.');
+        },
       });
   }
   loadParticipants(event: any) {
@@ -964,9 +984,6 @@ export class AdminResource {
           ),
         error: (e) => this.message.set(e.error?.message ?? 'No se pudo actualizar la solicitud.'),
       });
-  }
-  readValue(event: Event) {
-    return (event.target as HTMLSelectElement).value;
   }
   format(value: any) {
     return value === null || value === undefined ? '—' : String(value);

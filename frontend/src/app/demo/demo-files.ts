@@ -2,11 +2,14 @@
  * Archivos de la demo: las imágenes se reducen y se guardan como data URL en localStorage,
  * y las portadas de productos reciben la misma marca de agua ARTISTAPP que genera la API.
  */
+import { fail } from './demo-store';
+
 const MAX_SIZE = 900;
 const MAX_DIGITAL_BYTES = 1024 * 1024;
 
 export async function imageDataUrl(file: File, watermark = false): Promise<string> {
-  const bitmap = await createImageBitmap(file);
+  // Como en la API: cuenta el contenido real del archivo, no su extensión.
+  const bitmap = await createImageBitmap(file).catch(() => fail(422, 'El archivo no es una imagen válida.'));
   const scale = Math.min(1, MAX_SIZE / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));
   const height = Math.max(1, Math.round(bitmap.height * scale));

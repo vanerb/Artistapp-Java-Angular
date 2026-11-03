@@ -50,6 +50,9 @@ export class DemoStore {
       const state = ['preparando', 'enviado', 'entregado'].includes(order?.['estado']) ? order!['estado'] : 'preparando';
       detail['estado_envio'] = state;
       detail['recibido_confirmado_at'] = state === 'entregado' ? nowStamp() : null;
+      const product = tables['productos'].find(p => p['id'] === detail['id_producto']);
+      detail['nombre_producto'] = product?.['nombre'] ?? null;
+      detail['precio_unitario'] = product?.['precio'] ?? null;
     }
     for (const user of tables['usuarios']) {
       tables['app_notifications'].push({

@@ -10,6 +10,7 @@ type CartItem = {
   descripcion: string;
   precio: number | string;
   imagen: string;
+  cantidad: number;
   artist_name: string;
 };
 @Component({
@@ -47,6 +48,9 @@ type CartItem = {
                   <h2>{{ item.nombre }}</h2>
                   <p>{{ item.descripcion }}</p>
                   <strong>{{ item.precio | currency: 'EUR' }}</strong>
+                  @if (item.cantidad < 1) {
+                    <b class="sold-out">Agotado: quítalo para poder continuar</b>
+                  }
                 </div>
                 <button class="remove" (click)="remove(item)">Quitar</button>
               </article>
@@ -66,7 +70,11 @@ type CartItem = {
               <span>Total</span><strong>{{ total() | currency: 'EUR' }}</strong>
             </div>
             <p>El envío cuesta 4 € cuando el pedido incluye piezas físicas.</p>
-            <a routerLink="/checkout">Continuar con el pedido ↗</a>
+            @if (hasSoldOut()) {
+              <p class="blocked">Quita los artículos agotados para continuar.</p>
+            } @else {
+              <a routerLink="/checkout">Continuar con el pedido ↗</a>
+            }
           </aside>
         </div>
       }
@@ -170,6 +178,15 @@ type CartItem = {
         font-size: 10px;
         font-weight: 700;
         cursor: pointer;
+      }
+      .sold-out {
+        display: block;
+        margin-top: 6px;
+        color: #9b463d;
+        font-size: 12px;
+      }
+      .summary .blocked {
+        color: #ffc9c2;
       }
       .summary {
         position: sticky;
@@ -335,6 +352,9 @@ export class CartPage {
         },
         error: () => this.message.set('No se pudo quitar este artículo.'),
       });
+  }
+  hasSoldOut() {
+    return this.items().some((item) => item.cantidad < 1);
   }
   image(path: string) {
     return assetUrl(path);

@@ -16,6 +16,7 @@ export interface DemoRequest extends RequestData {
 export interface DemoResponse {
   status: number;
   body: unknown;
+  filename?: string;
 }
 
 interface Ctx extends DemoRequest {
@@ -45,6 +46,7 @@ export class DemoApi {
       const result = await route.handler(ctx);
       this.db.save();
       if (result instanceof Created) return { status: 201, body: result.body };
+      if (result instanceof FileDownload) return { status: 200, body: result.blob, filename: result.filename };
       return { status: 200, body: result };
     }
     fail(404);
@@ -818,16 +820,22 @@ export class DemoApi {
       if (!cart) fail(422, 'La cesta está vacía.');
       const items = this.cartItems(cart['id']);
       if (!items.length) fail(422, 'La cesta está vacía.');
-      if (items.some(item => item['cantidad'] < 1)) fail(422, 'Uno de los productos ya no está disponible.');
+      const soldOut = items.find(item => item['cantidad'] < 1);
+      if (soldOut) fail(422, `«${soldOut['nombre']}» ya no está disponible. Quítalo de la cesta para continuar.`);
       const subtotal = items.reduce((sum, item) => sum + Number(item['precio']), 0);
       const shipping = items.some(item => item['id_tipo'] === 1) ? SHIPPING : 0;
-      const order = this.db.insert('pedidos', { id_usuario: auth['id'], nombre: data['nombre'], estado: 'preparando', direccion: data['direccion'], telefono: phone, pago: subtotal + shipping });
+      const order = this.db.insert('pedidos', { id_usuario: auth['id'], nombre: data['nombre'], estado: 'preparando', direccion: data['direccion'], telefono: phone, pago: subtotal + shipping, created_at: nowStamp() });
       for (const item of items) {
-        this.db.insert('detalles_pedido', { id_pedido: order['id'], id_producto: item['id'], estado_envio: 'preparando', recibido_confirmado_at: null });
+        this.db.insert('detalles_pedido', { id_pedido: order['id'], id_producto: item['id'], estado_envio: 'preparando', recibido_confirmado_at: null, nombre_producto: item['nombre'], precio_unitario: item['precio'] });
         const product = this.db.find('productos', item['id']);
         if (product && product['cantidad'] > 0) product['cantidad']--;
       }
       this.db.remove('cesta_producto', c => c['id_cesta'] === cart['id']);
+      for (const sellerId of new Set(items.map(item => Number(item['id_usuario'])))) {
+        if (sellerId === auth['id']) continue;
+        const names = items.filter(item => item['id_usuario'] === sellerId).map(item => `«${item['nombre']}»`).join(', ');
+        this.notify([sellerId], 'pedido', `Nuevo pedido #${order['id']}`, `@${auth['usuario']} ha comprado ${names}.`, '/pedidos-recibidos');
+      }
       return new Created({ order, message: 'Pedido creado.' });
     });
   }
@@ -836,10 +844,11 @@ export class DemoApi {
 
   private details(orderId: number, sellerId?: number): Row[] {
     return this.db.t('detalles_pedido').filter(d => d['id_pedido'] === orderId).map(d => ({ d, p: this.db.find('productos', d['id_producto']) }))
-      .filter(({ p }) => p && (sellerId === undefined || p['id_usuario'] === sellerId))
+      .filter(({ p }) => sellerId === undefined || p?.['id_usuario'] === sellerId)
       .map(({ d, p }) => ({
         detalle_id: d['id'], id_pedido: d['id_pedido'], estado_envio: d['estado_envio'] ?? 'preparando', recibido_confirmado_at: d['recibido_confirmado_at'] ?? null,
-        id: p!['id'], nombre: p!['nombre'], imagen: p!['imagen'], precio: p!['precio'], id_tipo: p!['id_tipo'], seller_id: p!['id_usuario']
+        id: d['id_producto'], nombre: d['nombre_producto'] ?? p?.['nombre'] ?? null, imagen: p?.['imagen'] ?? null, precio: d['precio_unitario'] ?? p?.['precio'] ?? null,
+        id_tipo: p?.['id_tipo'] ?? null, seller_id: p?.['id_usuario'] ?? null, seller_name: p ? this.db.user(p['id_usuario'])?.['usuario'] ?? null : null
       }));
   }
 
@@ -859,8 +868,21 @@ export class DemoApi {
     order['estado'] = this.overallStatus(this.db.t('detalles_pedido').filter(d => d['id_pedido'] === order['id']), order['estado']);
   }
 
+  /** Mismas reglas que la API: el comprador cancela si nada ha salido; administración, si nadie ha confirmado. */
+  private cancelOrder(order: Row, auth: Row): void {
+    const lines = this.db.t('detalles_pedido').filter(d => d['id_pedido'] === order['id']);
+    if (lines.some(d => d['recibido_confirmado_at'])) fail(422, 'Este pedido tiene artículos con la recepción confirmada y ya no se puede cancelar.');
+    if (!this.isAdmin(auth) && lines.some(d => (d['estado_envio'] ?? 'preparando') !== 'preparando')) fail(422, 'Algún artículo ya se ha enviado o entregado, así que el pedido ya no se puede cancelar.');
+    this.restock(order['id']);
+    order['estado'] = 'cancelado';
+    const sellers = new Set(lines.map(d => this.db.find('productos', d['id_producto'])?.['id_usuario']).filter((id): id is number => !!id && id !== auth['id']));
+    this.notify([...sellers], 'pedido', `Pedido #${order['id']} cancelado`, 'El pedido se ha cancelado. Los artículos sin entregar han vuelto a tu inventario.', '/pedidos-recibidos');
+    if (order['id_usuario'] !== auth['id']) this.notify([order['id_usuario']], 'pedido', `Pedido #${order['id']} cancelado`, 'Administración ha cancelado tu pedido.', '/pedidos');
+  }
+
+  /** Devuelve al inventario una unidad por cada artículo que no se ha entregado. */
   private restock(orderId: number): void {
-    for (const detail of this.db.t('detalles_pedido').filter(d => d['id_pedido'] === orderId)) {
+    for (const detail of this.db.t('detalles_pedido').filter(d => d['id_pedido'] === orderId && d['estado_envio'] !== 'entregado')) {
       const product = this.db.find('productos', detail['id_producto']);
       if (product) product['cantidad']++;
     }
@@ -887,7 +909,7 @@ export class DemoApi {
       page['data'] = page['data'].map((o: Row) => {
         const productos = this.details(o['id'], auth['id']);
         return {
-          ...this.pick(o, ['id', 'nombre', 'estado', 'direccion', 'telefono', 'pago']), buyer_name: this.db.user(o['id_usuario'])?.['usuario'], productos,
+          ...this.pick(o, ['id', 'nombre', 'estado', 'direccion', 'telefono', 'pago', 'created_at']), buyer_name: this.db.user(o['id_usuario'])?.['usuario'], productos,
           total_vendedor: productos.reduce((sum, p) => sum + Number(p['precio']), 0), estado: this.overallStatus(productos, o['estado'])
         };
       });
@@ -900,16 +922,21 @@ export class DemoApi {
       ensure(admin || [3, 5].includes(auth['id_tipo']), 403, 'No tienes permiso para cambiar el estado.');
       const { estado } = this.v(ctx, { estado: 'required|in:preparando,enviado,entregado' + (admin ? ',cancelado' : '') });
       const order = this.db.findOrFail('pedidos', ctx.params[0]);
+      const lines = this.db.t('detalles_pedido').filter(d => d['id_pedido'] === order['id']);
       const detailIds = new Set(this.details(order['id'], admin ? undefined : auth['id']).map(d => d['detalle_id']));
       ensure(admin || detailIds.size, 403, 'Este pedido no contiene productos tuyos.');
       if (order['estado'] === 'cancelado') fail(422, 'El pedido está cancelado.');
-      const mine = this.db.t('detalles_pedido').filter(d => detailIds.has(d['id']));
-      if (estado !== 'entregado' && mine.some(d => d['recibido_confirmado_at'])) fail(422, 'El comprador ya confirmó la recepción; no se puede retroceder el estado.');
-      if (order['estado'] === 'entregado' && estado === 'cancelado') fail(422, 'No se puede cancelar un pedido entregado.');
       if (admin && estado === 'cancelado') {
-        this.restock(order['id']);
-        order['estado'] = 'cancelado';
+        this.cancelOrder(order, auth);
         return order;
+      }
+      if (admin && new Set(lines.map(d => d['estado_envio'])).size > 1) fail(422, 'Los artículos están en estados distintos porque cada vendedor gestiona los suyos. Administración solo puede cancelar este pedido.');
+      const mine = lines.filter(d => detailIds.has(d['id']));
+      if (estado !== 'entregado' && mine.some(d => d['recibido_confirmado_at'])) fail(422, 'El comprador ya confirmó la recepción; no se puede retroceder el estado.');
+      const changed = mine.filter(d => d['estado_envio'] !== estado).map(d => `«${d['nombre_producto'] ?? 'Artículo'}»`);
+      if (changed.length && order['id_usuario'] !== auth['id']) {
+        const label = ({ preparando: 'Preparando', enviado: 'Enviado', entregado: 'Entregado' } as Record<string, string>)[estado];
+        this.notify([order['id_usuario']], 'pedido', `Tu pedido #${order['id']} ha cambiado`, `${changed.join(', ')}: ${label}.`, '/pedidos');
       }
       for (const detail of mine) {
         detail['estado_envio'] = estado;
@@ -931,6 +958,8 @@ export class DemoApi {
       if (item!['recibido_confirmado_at']) fail(422, 'La recepción de este artículo ya está confirmada.');
       item!['recibido_confirmado_at'] = nowStamp();
       this.syncOrderStatus(order);
+      const sellerId = this.db.find('productos', item!['id_producto'])?.['id_usuario'];
+      if (sellerId && sellerId !== auth['id']) this.notify([sellerId], 'pedido', 'Recepción confirmada', `@${auth['usuario']} ha recibido «${item!['nombre_producto']}» del pedido #${id}.`, '/pedidos-recibidos');
       return order;
     });
 
@@ -956,8 +985,7 @@ export class DemoApi {
       ensure(order['id_usuario'] === auth['id'] || this.isAdmin(auth), 403);
       if (order['estado'] === 'entregado') fail(422, 'No se puede cancelar un pedido entregado.');
       if (order['estado'] === 'cancelado') fail(422, 'Este pedido ya está cancelado.');
-      this.restock(order['id']);
-      order['estado'] = 'cancelado';
+      this.cancelOrder(order, auth);
       return { message: 'Pedido cancelado y artículos devueltos al inventario.' };
     });
 
@@ -968,9 +996,14 @@ export class DemoApi {
       ensure(order['id_usuario'] === auth['id'] || this.isAdmin(auth), 403);
       if (order['estado'] === 'cancelado') fail(403, 'El pedido está cancelado.');
       const product = this.db.find('productos', productId);
-      ensure(product && product['id_tipo'] === 2 && this.db.t('detalles_pedido').some(d => d['id_pedido'] === id && d['id_producto'] === productId), 404);
+      const line = this.db.t('detalles_pedido').find(d => d['id_pedido'] === id && d['id_producto'] === productId);
+      ensure(product && product['id_tipo'] === 2 && line, 404);
+      // Cada artículo digital se libera cuando su vendedor lo entrega, sin depender del resto del pedido.
+      ensure(this.isAdmin(auth) || line!['estado_envio'] === 'entregado', 403, 'El vendedor todavía no ha entregado este artículo.');
       if (!product!['archivos'] || product!['archivos'] === NO_FILES) fail(404, 'El archivo digital no está disponible.');
-      return downloadBlob(product!['archivos']);
+      const stored = product!['archivos'];
+      const filename = typeof stored === 'object' ? stored['name'] : String(stored).split('/').pop();
+      return new FileDownload(await downloadBlob(stored), filename);
     });
   }
 
@@ -1033,6 +1066,11 @@ export class DemoApi {
       const [id] = ctx.params;
       if (id === ctx.viewer!['id']) fail(422, 'No puedes eliminar tu propia cuenta de administración.');
       this.db.findOrFail('usuarios', id);
+      const pendingSale = this.db.t('detalles_pedido').some(d => {
+        const order = this.db.find('pedidos', d['id_pedido']);
+        return this.db.find('productos', d['id_producto'])?.['id_usuario'] === id && order && order['id_usuario'] !== id && order['estado'] !== 'cancelado' && !d['recibido_confirmado_at'];
+      });
+      if (pendingSale) fail(422, 'Esta cuenta tiene ventas sin entregar o sin confirmar. Resuélvelas o cancélalas antes de eliminarla.');
       const ids = (table: string) => new Set(this.db.t(table).filter(r => r['id_usuario'] === id).map(r => r['id']));
       const events = ids('eventos');
       const products = ids('productos');
@@ -1046,12 +1084,19 @@ export class DemoApi {
       this.db.remove('informes', r => r['id_usuario'] === id || r['id_usuarioreferenciado'] === id);
       this.db.remove('cesta_producto', c => products.has(c['id_producto']) || carts.has(c['id_cesta']));
       this.db.remove('cesta', c => c['id_usuario'] === id);
-      this.db.remove('detalles_pedido', d => orders.has(d['id_pedido']) || products.has(d['id_producto']));
+      // Las compras activas de la cuenta devuelven su stock; las ventas a terceros se conservan en el historial del comprador.
+      for (const order of this.db.t('pedidos').filter(o => o['id_usuario'] === id && o['estado'] !== 'cancelado')) this.restock(order['id']);
+      this.db.remove('detalles_pedido', d => orders.has(d['id_pedido']));
       for (const table of ['pedidos', 'avisos', 'publicaciones', 'eventos', 'productos']) this.db.remove(table, r => r['id_usuario'] === id);
       this.db.remove('usuarios', u => u['id'] === id);
       return { message: 'Cuenta eliminada.' };
     });
   }
+}
+
+/** Respuesta con un archivo para descargar. */
+class FileDownload {
+  constructor(readonly blob: Blob, readonly filename: string) {}
 }
 
 /** Marca una respuesta 201 Created. */

@@ -34,8 +34,8 @@ public class SchemaInitializer implements ApplicationRunner {
         "productos (" + ID + ", nombre VARCHAR(255) NOT NULL, descripcion VARCHAR(255) NOT NULL, precio DECIMAL(10,2) NOT NULL, cantidad INT NOT NULL DEFAULT 0, imagen VARCHAR(255) NOT NULL DEFAULT '', imagen_original VARCHAR(255) NULL, id_tipo" + FK + ", id_usuario" + FK + ", archivos VARCHAR(255) NOT NULL DEFAULT '', INDEX (id_tipo), INDEX (id_usuario))",
         "cesta (" + ID + ", id_usuario" + FK + " UNIQUE)",
         "cesta_producto (" + ID + ", id_cesta" + FK + ", id_producto" + FK + ", INDEX (id_cesta), INDEX (id_producto))",
-        "pedidos (" + ID + ", id_usuario" + FK + ", nombre VARCHAR(255) NOT NULL, estado VARCHAR(255) NOT NULL DEFAULT 'preparando', direccion VARCHAR(255) NOT NULL, telefono VARCHAR(32) NOT NULL, pago DECIMAL(10,2) NOT NULL, INDEX (id_usuario))",
-        "detalles_pedido (" + ID + ", id_pedido" + FK + ", id_producto" + FK + ", estado_envio VARCHAR(255) NOT NULL DEFAULT 'preparando', recibido_confirmado_at TIMESTAMP NULL, INDEX (id_pedido), INDEX (id_producto))",
+        "pedidos (" + ID + ", id_usuario" + FK + ", nombre VARCHAR(255) NOT NULL, estado VARCHAR(255) NOT NULL DEFAULT 'preparando', direccion VARCHAR(255) NOT NULL, telefono VARCHAR(32) NOT NULL, pago DECIMAL(10,2) NOT NULL, created_at TIMESTAMP NULL, INDEX (id_usuario))",
+        "detalles_pedido (" + ID + ", id_pedido" + FK + ", id_producto" + FK + ", estado_envio VARCHAR(255) NOT NULL DEFAULT 'preparando', recibido_confirmado_at TIMESTAMP NULL, nombre_producto VARCHAR(255) NULL, precio_unitario DECIMAL(10,2) NULL, INDEX (id_pedido), INDEX (id_producto))",
         "avisos (" + ID + ", titulo VARCHAR(255) NOT NULL, aviso VARCHAR(255) NOT NULL, fecha_publicacion DATE NOT NULL, id_usuario" + FK + ", hora TIME NOT NULL, INDEX (id_usuario))",
         "favoritos (" + ID + ", id_usuario" + FK + ", id_usuariopin" + FK + ", INDEX (id_usuario), INDEX (id_usuariopin))",
         "megusta (" + ID + ", id_usuario" + FK + ", id_publicacion" + FK + ", megusta TINYINT UNSIGNED NOT NULL DEFAULT 0, INDEX (id_usuario), INDEX (id_publicacion))",
@@ -72,13 +72,19 @@ public class SchemaInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         for (String table : TABLES) db.exec("CREATE TABLE IF NOT EXISTS " + table + " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         addMissingColumns();
+        addOrderHistoryColumns();
         seedCatalogs();
         seedAdmin();
         log.info("Esquema de ArtistApp, tipos de usuario y categorías preparados.");
     }
 
     private boolean hasColumn(String table, String column) {
-        return db.exists("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", table, column);
+        Boolean found = db.jdbc().execute((java.sql.Connection connection) -> {
+            try (java.sql.ResultSet columns = connection.getMetaData().getColumns(connection.getCatalog(), connection.getSchema(), table, column)) {
+                return columns.next();
+            }
+        });
+        return Boolean.TRUE.equals(found);
     }
 
     /** Columnas añadidas tras el esquema histórico (equivale a las migraciones de octubre de 2026). */
@@ -105,6 +111,27 @@ public class SchemaInitializer implements ApplicationRunner {
                     db.exec("UPDATE detalles_pedido SET estado_envio = ? WHERE id_pedido = ?", state, order.get("id"));
                 }
             }
+        }
+    }
+
+    /** Datos de cada venta que no deben cambiar aunque luego se edite o elimine el producto. */
+    private void addOrderHistoryColumns() {
+        if (!hasColumn("pedidos", "created_at")) {
+            db.exec("ALTER TABLE pedidos ADD COLUMN created_at TIMESTAMP NULL");
+        }
+        boolean addedSnapshot = false;
+        if (!hasColumn("detalles_pedido", "nombre_producto")) {
+            db.exec("ALTER TABLE detalles_pedido ADD COLUMN nombre_producto VARCHAR(255) NULL");
+            addedSnapshot = true;
+        }
+        if (!hasColumn("detalles_pedido", "precio_unitario")) {
+            db.exec("ALTER TABLE detalles_pedido ADD COLUMN precio_unitario DECIMAL(10,2) NULL");
+            addedSnapshot = true;
+        }
+        if (addedSnapshot) {
+            // El precio original de los pedidos antiguos no se guardó: se conserva el valor actual del producto.
+            db.exec("UPDATE detalles_pedido SET nombre_producto = (SELECT p.nombre FROM productos p WHERE p.id = detalles_pedido.id_producto) WHERE nombre_producto IS NULL");
+            db.exec("UPDATE detalles_pedido SET precio_unitario = (SELECT p.precio FROM productos p WHERE p.id = detalles_pedido.id_producto) WHERE precio_unitario IS NULL");
         }
     }
 

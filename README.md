@@ -141,6 +141,8 @@ En Linux o macOS: `cd backend && DB_PASSWORD=... ./mvnw spring-boot:run`.
 
 La API queda en `http://127.0.0.1:8000`. Al arrancar crea las tablas y columnas que falten y completa los tipos de usuario, tipos de producto y categorías; se puede reiniciar tantas veces como se quiera sin duplicar datos ni borrar nada.
 
+Para ejecutar los tests, que usan H2 en memoria y no necesitan MySQL: `.\mvnw.cmd test`.
+
 Para generar un `.jar` ejecutable: `.\mvnw.cmd package` y después `java -jar target\artistapp-api-1.0.0.jar`.
 
 ### 2. Instalar y arrancar el frontend

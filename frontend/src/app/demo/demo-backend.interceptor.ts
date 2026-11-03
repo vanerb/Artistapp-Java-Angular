@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DemoApi } from './demo-api';
 import { ApiFail, DemoStore, Row } from './demo-store';
@@ -45,7 +45,8 @@ export const demoBackendInterceptor: HttpInterceptorFn = (request, next) => {
       try {
         const result = await demoApi().handle({ method, path: match[1].replace(/\/+$/, '') || '/', query, body, files, token });
         if (!cancelled) {
-          subscriber.next(new HttpResponse({ status: result.status, body: result.body, url: request.url }));
+          const headers = result.filename ? new HttpHeaders({ 'Content-Disposition': `attachment; filename="${result.filename}"` }) : undefined;
+          subscriber.next(new HttpResponse({ status: result.status, body: result.body, url: request.url, headers }));
           subscriber.complete();
         }
       } catch (error) {

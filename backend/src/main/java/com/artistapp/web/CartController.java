@@ -52,7 +52,7 @@ public class CartController {
     }
 
     static BigDecimal subtotal(List<Map<String, Object>> items) {
-        return items.stream().map(item -> new BigDecimal(item.get("precio").toString())).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return items.stream().filter(item -> item.get("precio") != null).map(item -> new BigDecimal(item.get("precio").toString())).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     static BigDecimal shipping(List<Map<String, Object>> items) {

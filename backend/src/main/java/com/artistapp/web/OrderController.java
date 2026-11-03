@@ -4,6 +4,7 @@ import static com.artistapp.support.ApiException.abortIf;
 import static com.artistapp.support.ApiException.abortUnless;
 
 import com.artistapp.security.AuthUser;
+import com.artistapp.service.Notifier;
 import com.artistapp.service.StorageService;
 import com.artistapp.support.ApiException;
 import com.artistapp.support.Db;
@@ -41,14 +42,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class OrderController {
-    private static final String DETAIL_COLUMNS = "d.id AS detalle_id, d.id_pedido, d.estado_envio, d.recibido_confirmado_at, p.id, p.nombre, p.imagen, p.precio, p.id_tipo, p.id_usuario AS seller_id";
+    private static final String DETAIL_SELECT = "SELECT d.id AS detalle_id, d.id_pedido, d.estado_envio, d.recibido_confirmado_at, d.id_producto AS id, "
+        + "COALESCE(d.nombre_producto, p.nombre) AS nombre, p.imagen, COALESCE(d.precio_unitario, p.precio) AS precio, p.id_tipo, p.id_usuario AS seller_id, s.usuario AS seller_name "
+        + "FROM detalles_pedido AS d LEFT JOIN productos AS p ON p.id = d.id_producto LEFT JOIN usuarios AS s ON s.id = p.id_usuario";
+    private static final Map<String, String> STATE_LABELS = Map.of("preparando", "Preparando", "enviado", "Enviado", "entregado", "Entregado");
 
     private final Db db;
     private final StorageService storage;
+    private final Notifier notifier;
 
-    public OrderController(Db db, StorageService storage) {
+    public OrderController(Db db, StorageService storage, Notifier notifier) {
         this.db = db;
         this.storage = storage;
+        this.notifier = notifier;
     }
 
     @GetMapping("/orders")
@@ -68,7 +74,7 @@ public class OrderController {
     public Object received(HttpServletRequest request, AuthUser auth) {
         abortUnless(auth.isOneOf(1, 3, 5), 403, "Tu cuenta no puede recibir pedidos.");
         Map<String, Object> orders = db.paginate(request, 30,
-            "SELECT DISTINCT o.id, o.nombre, o.estado, o.direccion, o.telefono, o.pago, u.usuario AS buyer_name FROM pedidos AS o "
+            "SELECT DISTINCT o.id, o.nombre, o.estado, o.direccion, o.telefono, o.pago, o.created_at, u.usuario AS buyer_name FROM pedidos AS o "
                 + "JOIN detalles_pedido AS d ON d.id_pedido = o.id JOIN productos AS p ON p.id = d.id_producto JOIN usuarios AS u ON u.id = o.id_usuario "
                 + "WHERE p.id_usuario = ? ORDER BY o.id DESC", auth.id());
         attachDetails(Db.pageData(orders), auth.id(), true);
@@ -80,7 +86,7 @@ public class OrderController {
         Map<Object, List<Map<String, Object>>> details = new LinkedHashMap<>();
         if (!ids.isEmpty()) {
             List<Object> args = new ArrayList<>(ids);
-            String sql = "SELECT " + DETAIL_COLUMNS + " FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido IN (" + Db.marks(ids) + ")";
+            String sql = DETAIL_SELECT + " WHERE d.id_pedido IN (" + Db.marks(ids) + ")";
             if (sellerId != null) { sql += " AND p.id_usuario = ?"; args.add(sellerId); }
             for (Map<String, Object> detail : db.list(sql, args.toArray())) {
                 details.computeIfAbsent(Users.id(detail, "id_pedido"), key -> new ArrayList<>()).add(detail);
@@ -108,7 +114,7 @@ public class OrderController {
         abortUnless(cart != null, 422, "La cesta está vacía.");
         List<Map<String, Object>> items = db.list("SELECT p.* FROM cesta_producto AS cp JOIN productos AS p ON p.id = cp.id_producto WHERE cp.id_cesta = ? FOR UPDATE", cart);
         abortIf(items.isEmpty(), 422, "La cesta está vacía.");
-        for (Map<String, Object> item : items) abortIf(Users.id(item, "cantidad") < 1, 422, "Uno de los productos ya no está disponible.");
+        for (Map<String, Object> item : items) abortIf(Users.id(item, "cantidad") < 1, 422, "«" + item.get("nombre") + "» ya no está disponible. Quítalo de la cesta para continuar.");
         BigDecimal total = CartController.subtotal(items).add(CartController.shipping(items));
         Map<String, Object> order = new LinkedHashMap<>();
         order.put("id_usuario", auth.id());
@@ -117,12 +123,18 @@ public class OrderController {
         order.put("direccion", data.get("direccion"));
         order.put("telefono", phone);
         order.put("pago", total);
+        order.put("created_at", LocalDateTime.now());
         long orderId = db.insert("pedidos", order);
         for (Map<String, Object> item : items) {
-            db.exec("INSERT INTO detalles_pedido (id_pedido, id_producto) VALUES (?, ?)", orderId, item.get("id"));
+            db.exec("INSERT INTO detalles_pedido (id_pedido, id_producto, nombre_producto, precio_unitario) VALUES (?, ?, ?, ?)", orderId, item.get("id"), item.get("nombre"), item.get("precio"));
             db.exec("UPDATE productos SET cantidad = cantidad - 1 WHERE id = ? AND cantidad > 0", item.get("id"));
         }
         db.exec("DELETE FROM cesta_producto WHERE id_cesta = ?", cart);
+        items.stream().collect(Collectors.groupingBy(item -> Users.id(item, "id_usuario"))).forEach((sellerId, sold) -> {
+            if (sellerId == auth.id()) return;
+            String names = sold.stream().map(item -> "«" + item.get("nombre") + "»").collect(Collectors.joining(", "));
+            notifier.user(sellerId, "pedido", "Nuevo pedido #" + orderId, "@" + auth.usuario() + " ha comprado " + names + ".", "/pedidos-recibidos");
+        });
         return ResponseEntity.status(201).body(Map.of("order", db.find("pedidos", orderId), "message", "Pedido creado."));
     }
 
@@ -139,23 +151,31 @@ public class OrderController {
         Map<String, Object> order = db.first("SELECT * FROM pedidos WHERE id = ? FOR UPDATE", id);
         abortUnless(order != null, 404);
         List<Long> detailIds = isAdmin
-            ? db.ids("SELECT d.id FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido = ?", id)
+            ? db.ids("SELECT id FROM detalles_pedido WHERE id_pedido = ?", id)
             : db.ids("SELECT d.id FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido = ? AND p.id_usuario = ?", id, auth.id());
         abortUnless(isAdmin || !detailIds.isEmpty(), 403, "Este pedido no contiene productos tuyos.");
         String current = String.valueOf(order.get("estado"));
         abortIf(current.equals("cancelado"), 422, "El pedido está cancelado.");
+        if (isAdmin && state.equals("cancelado")) {
+            cancelOrder(order, auth);
+            return db.find("pedidos", id);
+        }
+        // El estado de envío es de cada vendedor: administración no puede pisar estados distintos con un solo cambio.
+        abortIf(isAdmin && db.count("SELECT COUNT(DISTINCT estado_envio) FROM detalles_pedido WHERE id_pedido = ?", id) > 1,
+            422, "Los artículos están en estados distintos porque cada vendedor gestiona los suyos. Administración solo puede cancelar este pedido.");
         if (!state.equals("entregado") && !detailIds.isEmpty()) {
             abortIf(db.exists("SELECT 1 FROM detalles_pedido WHERE id IN (" + Db.marks(detailIds) + ") AND recibido_confirmado_at IS NOT NULL", detailIds.toArray()),
                 422, "El comprador ya confirmó la recepción; no se puede retroceder el estado.");
         }
-        abortIf(current.equals("entregado") && state.equals("cancelado"), 422, "No se puede cancelar un pedido entregado.");
-
-        if (isAdmin && state.equals("cancelado")) {
-            restock(id);
-            db.exec("UPDATE pedidos SET estado = 'cancelado' WHERE id = ?", id);
-            return db.find("pedidos", id);
-        }
         if (!detailIds.isEmpty()) {
+            List<Object> changedArgs = new ArrayList<>(detailIds);
+            changedArgs.add(state);
+            List<String> changed = db.list("SELECT COALESCE(nombre_producto, 'Artículo') AS nombre FROM detalles_pedido WHERE id IN (" + Db.marks(detailIds) + ") AND estado_envio <> ?", changedArgs.toArray())
+                .stream().map(row -> "«" + row.get("nombre") + "»").toList();
+            long buyerId = Users.id(order, "id_usuario");
+            if (!changed.isEmpty() && buyerId != auth.id()) {
+                notifier.user(buyerId, "pedido", "Tu pedido #" + id + " ha cambiado", String.join(", ", changed) + ": " + STATE_LABELS.get(state) + ".", "/pedidos");
+            }
             List<Object> args = new ArrayList<>();
             args.add(state);
             args.addAll(detailIds);
@@ -181,6 +201,10 @@ public class OrderController {
         abortIf(item.get("recibido_confirmado_at") != null, 422, "La recepción de este artículo ya está confirmada.");
         db.exec("UPDATE detalles_pedido SET recibido_confirmado_at = ? WHERE id = ?", LocalDateTime.now(), detail);
         syncOrderStatus(id);
+        Long sellerId = db.value("SELECT p.id_usuario FROM productos AS p WHERE p.id = ?", Long.class, item.get("id_producto"));
+        if (sellerId != null && sellerId != auth.id()) {
+            notifier.user(sellerId, "pedido", "Recepción confirmada", "@" + auth.usuario() + " ha recibido «" + item.get("nombre_producto") + "» del pedido #" + id + ".", "/pedidos-recibidos");
+        }
         return db.find("pedidos", id);
     }
 
@@ -236,7 +260,10 @@ public class OrderController {
         Map<String, Object> order = db.findOrFail("pedidos", id);
         abortUnless(Users.id(order, "id_usuario") == auth.id() || auth.isAdmin(), 403);
         abortIf("cancelado".equals(order.get("estado")), 403, "El pedido está cancelado.");
-        abortUnless(db.exists("SELECT 1 FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido = ? AND p.id = ? AND p.id_tipo = 2", id, product), 404);
+        String delivery = db.value("SELECT d.estado_envio FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido = ? AND p.id = ? AND p.id_tipo = 2", String.class, id, product);
+        abortUnless(delivery != null, 404);
+        // Cada artículo digital se libera cuando su vendedor lo entrega, sin depender del resto del pedido.
+        abortUnless(auth.isAdmin() || delivery.equals("entregado"), 403, "El vendedor todavía no ha entregado este artículo.");
         String file = db.value("SELECT archivos FROM productos WHERE id = ?", String.class, product);
         boolean available = file != null && !file.isBlank() && !file.equals("Sin archivos") && storage.exists(StorageService.Disk.LOCAL, file);
         if (!available) throw new ApiException(404, "El archivo digital no está disponible.");
@@ -256,14 +283,32 @@ public class OrderController {
         abortUnless(Users.id(order, "id_usuario") == auth.id() || auth.isAdmin(), 403);
         abortIf("entregado".equals(order.get("estado")), 422, "No se puede cancelar un pedido entregado.");
         abortIf("cancelado".equals(order.get("estado")), 422, "Este pedido ya está cancelado.");
-        restock(id);
-        db.exec("UPDATE pedidos SET estado = 'cancelado' WHERE id = ?", id);
+        cancelOrder(order, auth);
         return Map.of("message", "Pedido cancelado y artículos devueltos al inventario.");
     }
 
-    /** Devuelve al inventario una unidad por cada artículo del pedido. */
+    /**
+     * El comprador solo cancela mientras nada haya salido; administración, mientras nadie haya confirmado la recepción.
+     * Avisa a la otra parte y devuelve al inventario lo que no se ha entregado.
+     */
+    private void cancelOrder(Map<String, Object> order, AuthUser auth) {
+        long id = Users.id(order, "id");
+        abortIf(db.exists("SELECT 1 FROM detalles_pedido WHERE id_pedido = ? AND recibido_confirmado_at IS NOT NULL", id),
+            422, "Este pedido tiene artículos con la recepción confirmada y ya no se puede cancelar.");
+        abortUnless(auth.isAdmin() || !db.exists("SELECT 1 FROM detalles_pedido WHERE id_pedido = ? AND estado_envio <> 'preparando'", id),
+            422, "Algún artículo ya se ha enviado o entregado, así que el pedido ya no se puede cancelar.");
+        restock(id);
+        db.exec("UPDATE pedidos SET estado = 'cancelado' WHERE id = ?", id);
+        for (Long sellerId : db.ids("SELECT DISTINCT p.id_usuario FROM detalles_pedido AS d JOIN productos AS p ON p.id = d.id_producto WHERE d.id_pedido = ?", id)) {
+            if (sellerId != auth.id()) notifier.user(sellerId, "pedido", "Pedido #" + id + " cancelado", "El pedido se ha cancelado. Los artículos sin entregar han vuelto a tu inventario.", "/pedidos-recibidos");
+        }
+        long buyerId = Users.id(order, "id_usuario");
+        if (buyerId != auth.id()) notifier.user(buyerId, "pedido", "Pedido #" + id + " cancelado", "Administración ha cancelado tu pedido.", "/pedidos");
+    }
+
+    /** Devuelve al inventario una unidad por cada artículo que no se ha entregado. */
     private void restock(long orderId) {
-        for (Long productId : db.ids("SELECT id_producto FROM detalles_pedido WHERE id_pedido = ?", orderId)) {
+        for (Long productId : db.ids("SELECT id_producto FROM detalles_pedido WHERE id_pedido = ? AND estado_envio <> 'entregado'", orderId)) {
             db.exec("UPDATE productos SET cantidad = cantidad + 1 WHERE id = ?", productId);
         }
     }
