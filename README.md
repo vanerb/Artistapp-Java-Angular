@@ -11,7 +11,7 @@ Una comunidad para artistas independientes, organizadores y amantes del arte. De
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-compatible-4479A1?logo=mysql&logoColor=white)
 
-**[Ver la demo en GitHub Pages](https://vanerb.github.io/Artistapp-Laravel-Angular/)**
+**[Ver la demo en GitHub Pages](https://vanerb.github.io/artistapp-java-angular/)**
 
 </div>
 
