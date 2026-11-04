@@ -7,9 +7,9 @@
 -- Versión del servidor: 8.0.33-0ubuntu0.20.04.2
 -- Versión de PHP: 7.4.33
 
--- SQL de muestra para la versión Angular + Laravel de ArtistApp.
+-- SQL de muestra para ArtistApp (Angular + Spring Boot).
 -- Importa este archivo en una base vrb_artistapp vacía; no sobrescribe la base original.
--- Todas las cuentas de muestra usan la contraseña: Usuario123 (hash bcrypt compatible con Laravel).
+-- Todas las cuentas de muestra usan la contraseña: Usuario123* (hash bcrypt).
 -- Los nombres de cuentas, eventos, avisos, obras y productos son ficticios.
 -- Se conservan IDs, relaciones y rutas multimedia del conjunto de datos para permitir probar la aplicación.
 
@@ -434,15 +434,15 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `apellidos`, `usuario`, `correo`, `contrasena`, `id_tipo`, `imagen`, `biografia`) VALUES
-(2, 'Admin', 'ArtistApp', 'admin-demo', 'admin@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 1, 'usuarios/4a66c8b206a0ee894d0fd5befade9354.jpg', 'Cuenta de administración de muestra'),
-(13, 'Nora', 'Luz', 'organizador-demo', 'organizador@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 3, 'usuarios/f9a15cb62ac50fa9be779804d72993d6.png', 'Organiza encuentros creativos.'),
-(44, 'Ariadna', 'Tinta', 'artista-uno', 'artista1@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 5, 'usuarios/183c856d3b5ee50e87a88c583eb3e9df.jpg', 'Ilustradora de mundos imaginarios.'),
-(67, 'Vera', 'Demo', 'visitante-uno', 'visitante1@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 7, 'usuarios/4a66c8b206a0ee894d0fd5befade9354.jpg', 'Cuenta visitante de muestra.'),
-(69, 'Kai', 'Papel', 'organizador-dos', 'organizador2@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 3, 'media/no-user.png', 'Organiza actividades culturales.'),
-(76, 'Río', 'Demo', 'visitante-dos', 'visitante2@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 7, 'media/no-user.png', 'Cuenta visitante de muestra.'),
-(77, 'Lía', 'Color', 'artista-dos', 'artista2@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 5, 'usuarios/720bd4b872090d2b794112497b22a6bf.jpg', 'Artista visual de la comunidad.'),
-(78, 'Teo', 'Trazo', 'artista-tres', 'artista3@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 5, 'media/no-user.png', 'Crea ilustraciones originales.'),
-(80, 'Sol', 'Demo', 'visitante-tres', 'visitante3@example.test', '$2y$10$8opEzWkLuQGK0fwIfkYT3uhBND/jKr8yG0oQOV.gMB/QmPLHaZrHS', 7, 'usuarios/cca0c207edb7aadea626a84bea369aff.png', 'Cuenta visitante de muestra.');
+(2, 'Admin', 'ArtistApp', 'admin-demo', 'admin@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 1, 'usuarios/4a66c8b206a0ee894d0fd5befade9354.jpg', 'Cuenta de administración de muestra'),
+(13, 'Nora', 'Luz', 'organizador-demo', 'organizador@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 3, 'usuarios/f9a15cb62ac50fa9be779804d72993d6.png', 'Organiza encuentros creativos.'),
+(44, 'Ariadna', 'Tinta', 'artista-uno', 'artista1@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 5, 'usuarios/183c856d3b5ee50e87a88c583eb3e9df.jpg', 'Ilustradora de mundos imaginarios.'),
+(67, 'Vera', 'Demo', 'visitante-uno', 'visitante1@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 7, 'usuarios/4a66c8b206a0ee894d0fd5befade9354.jpg', 'Cuenta visitante de muestra.'),
+(69, 'Kai', 'Papel', 'organizador-dos', 'organizador2@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 3, 'media/no-user.png', 'Organiza actividades culturales.'),
+(76, 'Río', 'Demo', 'visitante-dos', 'visitante2@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 7, 'media/no-user.png', 'Cuenta visitante de muestra.'),
+(77, 'Lía', 'Color', 'artista-dos', 'artista2@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 5, 'usuarios/720bd4b872090d2b794112497b22a6bf.jpg', 'Artista visual de la comunidad.'),
+(78, 'Teo', 'Trazo', 'artista-tres', 'artista3@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 5, 'media/no-user.png', 'Crea ilustraciones originales.'),
+(80, 'Sol', 'Demo', 'visitante-tres', 'visitante3@example.test', '$2y$10$dYQeE7/N.xEjUk439Kh...0BOhgobPv3z.Epf.PnkxzVKxUP.Jb3G', 7, 'usuarios/cca0c207edb7aadea626a84bea369aff.png', 'Cuenta visitante de muestra.');
 
 --
 -- Índices para tablas volcadas

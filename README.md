@@ -128,7 +128,7 @@ La API se configura con variables de entorno (todas tienen un valor por defecto 
 | `APP_TIMEZONE` | `Europe/Madrid` | Zona horaria de fechas y mensajes. |
 | `TOKEN_DAYS` | `30` | Días que dura una sesión antes de tener que volver a entrar. |
 
-Para tener datos de ejemplo, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. En el SQL de muestra, las cuentas usan la contraseña `Usuario123`; los nombres y textos de muestra son ficticios.
+Para tener datos de ejemplo, importa `BaseDeDatos/vrb_artistapp_muestra.sql` en una base vacía. En el SQL de muestra, las cuentas usan la contraseña `Usuario123*`; los nombres y textos de muestra son ficticios.
 
 Desde PowerShell, en la raíz del repositorio:
 
@@ -180,7 +180,7 @@ El workflow `.github/workflows/pages.yml` pasa los tests, la compila y la public
 
 ## Datos de demostración
 
-El SQL de muestra conserva IDs, relaciones y rutas multimedia para poder recorrer la aplicación; las cuentas, eventos y textos de ejemplo son inventados. Las cuentas incluidas usan `Usuario123` como contraseña. No importes el SQL de muestra sobre una base que contenga datos que quieras conservar.
+El SQL de muestra conserva IDs, relaciones y rutas multimedia para poder recorrer la aplicación; las cuentas, eventos y textos de ejemplo son inventados. Las cuentas incluidas usan `Usuario123*` como contraseña. No importes el SQL de muestra sobre una base que contenga datos que quieras conservar.
 
 ## Autora
 
